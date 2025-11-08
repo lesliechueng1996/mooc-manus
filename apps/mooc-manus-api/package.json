@@ -1,0 +1,17 @@
+{
+  "name": "mooc-manus-api",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "lint": "biome check",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "hono": "^4.10.4"
+  },
+  "devDependencies": {
+    "wrangler": "^4.4.0"
+  }
+}
