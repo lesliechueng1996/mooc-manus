@@ -6,10 +6,12 @@
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome check --write"
   },
   "dependencies": {
-    "hono": "^4.10.4"
+    "@repo/api-schema": "workspace:*",
+    "hono": "^4.10.4",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "wrangler": "^4.4.0"
