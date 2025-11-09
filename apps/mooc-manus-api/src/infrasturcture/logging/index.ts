@@ -11,6 +11,7 @@ const loggerConfig: Options = {
       colorize: true,
       ignore: 'req,res',
       messageFormat: '{req.id} - {msg}',
+      translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l',
     },
   },
   customReceivedMessage: (req) => {
