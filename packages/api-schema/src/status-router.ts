@@ -1,4 +1,3 @@
-export type GetStatusResponse = {
-  message: string;
-  data: object;
-};
+import type { ResponseSchema } from './base.js';
+
+export type GetStatusResponse = ResponseSchema;

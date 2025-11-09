@@ -4,3 +4,7 @@ export type Variables = {
   requestId: string;
   logger: Logger;
 };
+
+export type Context = {
+  Variables: Variables;
+};

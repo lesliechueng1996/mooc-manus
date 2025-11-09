@@ -4,9 +4,9 @@ import { requestId } from 'hono/request-id';
 import { logger } from './infrasturcture/logging/index.js';
 import { createApiRouter } from './interface/endpoint/router.js';
 import statusRouter from './interface/endpoint/status-router.js';
+import { exceptionHandler } from './interface/error/exception-handler.js';
 
 const app = createApiRouter();
-app.basePath('/api');
 
 app.use(requestId());
 app.use(logger);
@@ -19,6 +19,7 @@ app.use(
     credentials: true,
   }),
 );
+app.onError(exceptionHandler);
 
 app.get('/', (c) => {
   c.var.logger.info('Hello Hono!');
@@ -26,7 +27,10 @@ app.get('/', (c) => {
   return c.text('Hello Hono!');
 });
 
-app.route('/status', statusRouter);
+const apiRouter = createApiRouter();
+apiRouter.route('/status', statusRouter);
+
+app.route('/api', apiRouter);
 
 serve(
   {
