@@ -1,5 +1,5 @@
 {
-  "name": "@repo/tencent-cos",
+  "name": "@repo/pino-log",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -14,13 +14,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cos-nodejs-sdk-v5": "^2.15.4",
-    "date-fns": "^4.1.0",
-    "uuid": "^13.0.0",
-    "@repo/pino-log": "workspace:*"
+    "pino": "^10.1.0",
+    "pino-http": "^11.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
-    "typescript": "^5.8.3"
+    "pino-pretty": "^13.1.2"
   }
 }

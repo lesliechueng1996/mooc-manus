@@ -1,8 +1,11 @@
 import * as fs from 'node:fs/promises';
+import { getLogger } from '@repo/pino-log';
 import COS from 'cos-nodejs-sdk-v5';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { withTempFile } from './temp-file.js';
+
+const logger = getLogger();
 
 let cosClient: COS | null = null;
 const cosConfig: {
@@ -49,7 +52,7 @@ export const uploadFile = async (data: {
   const fileKey = data.key ?? generateFileKey(ext);
   withTempFile(fileKey, async (tempFilePath) => {
     try {
-      console.log(`暂存文件到: ${tempFilePath}`);
+      logger.info(`暂存文件到: ${tempFilePath}`);
 
       const fileData = await data.file.arrayBuffer();
       await fs.writeFile(tempFilePath, Buffer.from(fileData));
@@ -65,7 +68,7 @@ export const uploadFile = async (data: {
             },
             (err, data) => {
               if (err) {
-                console.error(`上传文件失败: ${err}`);
+                logger.error(`上传文件失败: ${err}`);
                 reject(err);
               } else {
                 resolve(data);
@@ -76,7 +79,7 @@ export const uploadFile = async (data: {
       );
 
       const result = await uploadPromise;
-      console.log('上传文件成功');
+      logger.info('上传文件成功');
 
       return {
         name: data.file.name,
@@ -87,7 +90,7 @@ export const uploadFile = async (data: {
         hash: result.ETag,
       };
     } catch (error) {
-      console.error(`上传文件失败: ${error}`);
+      logger.error(`上传文件失败: ${error}`);
       throw error;
     }
   });

@@ -1,4 +1,7 @@
+import { getLogger } from '@repo/pino-log';
 import { createClient, type RedisClientType } from 'redis';
+
+const logger = getLogger();
 
 let redisClient: RedisClientType | undefined;
 
@@ -30,7 +33,7 @@ export const connectRedis = async (): Promise<void> => {
   }
 
   await client.ping();
-  console.log('Redis connected');
+  logger.info('Redis connected');
 };
 
 export const disconnectRedis = async (): Promise<void> => {
@@ -40,5 +43,5 @@ export const disconnectRedis = async (): Promise<void> => {
     await client.quit();
   }
 
-  console.log('Redis disconnected');
+  logger.info('Redis disconnected');
 };

@@ -2,9 +2,8 @@ import { serve } from '@hono/node-server';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { NotFoundException } from './application/error/exception.js';
-import { logger } from './infrasturcture/logging/index.js';
+import { logger, loggerMiddleware } from './infrasturcture/logging/index.js';
 import { connectCos, destroyCosClient } from './infrasturcture/storage/cos.js';
-import { databaseClient } from './infrasturcture/storage/database.js';
 import {
   connectRedis,
   disconnectRedis,
@@ -16,7 +15,7 @@ import { exceptionHandler } from './interface/error/exception-handler.js';
 const app = createApiRouter();
 
 app.use(requestId());
-app.use(logger);
+app.use(loggerMiddleware);
 app.use(
   '/api/*',
   cors({
@@ -32,8 +31,6 @@ app.notFound(() => {
 app.onError(exceptionHandler);
 
 app.get('/', async (c) => {
-  const demos = await databaseClient.demo.findMany();
-  console.log(demos);
   c.var.logger.info('Hello Hono!');
   c.var.logger.error('Hello Hono!!!');
   return c.text('Hello Hono!');
@@ -54,7 +51,7 @@ serve(
     port: 8000,
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
+    logger.info(`Server is running on http://localhost:${info.port}`);
   },
 );
 

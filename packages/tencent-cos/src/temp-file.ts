@@ -1,6 +1,9 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { getLogger } from '@repo/pino-log';
+
+const logger = getLogger();
 
 export const withTempFile = async <T>(
   fileKey: string,
@@ -13,15 +16,15 @@ export const withTempFile = async <T>(
     const tempDir = path.dirname(tempFilePath);
     await fs.mkdir(tempDir, { recursive: true });
 
-    console.log(`temp file path: ${tempFilePath}`);
+    logger.info(`temp file path: ${tempFilePath}`);
     return await callback(tempFilePath);
   } catch (error) {
-    console.error(`处理临时文件失败: ${error}`);
+    logger.error(`处理临时文件失败: ${error}`);
     throw error;
   } finally {
     if (tempFilePath) {
       await fs.rm(tempFilePath);
-      console.log(`delete temp file: ${tempFilePath}`);
+      logger.info(`delete temp file: ${tempFilePath}`);
     }
   }
 };

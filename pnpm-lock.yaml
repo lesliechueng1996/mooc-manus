@@ -29,6 +29,9 @@ importers:
       '@repo/node-redis':
         specifier: workspace:*
         version: link:../../packages/node-redis
+      '@repo/pino-log':
+        specifier: workspace:*
+        version: link:../../packages/pino-log
       '@repo/prisma-database':
         specifier: workspace:*
         version: link:../../packages/prisma-database
@@ -38,19 +41,10 @@ importers:
       hono:
         specifier: ^4.10.4
         version: 4.10.4
-      pino:
-        specifier: ^10.1.0
-        version: 10.1.0
-      pino-http:
-        specifier: ^11.0.0
-        version: 11.0.0
     devDependencies:
       '@types/node':
         specifier: ^20.11.17
         version: 20.19.24
-      pino-pretty:
-        specifier: ^13.1.2
-        version: 13.1.2
       tsx:
         specifier: ^4.7.1
         version: 4.20.6
@@ -100,9 +94,25 @@ importers:
 
   packages/node-redis:
     dependencies:
+      '@repo/pino-log':
+        specifier: workspace:*
+        version: link:../pino-log
       redis:
         specifier: ^5.9.0
         version: 5.9.0
+
+  packages/pino-log:
+    dependencies:
+      pino:
+        specifier: ^10.1.0
+        version: 10.1.0
+      pino-http:
+        specifier: ^11.0.0
+        version: 11.0.0
+    devDependencies:
+      pino-pretty:
+        specifier: ^13.1.2
+        version: 13.1.2
 
   packages/prisma-database:
     dependencies:
@@ -122,6 +132,9 @@ importers:
 
   packages/tencent-cos:
     dependencies:
+      '@repo/pino-log':
+        specifier: workspace:*
+        version: link:../pino-log
       cos-nodejs-sdk-v5:
         specifier: ^2.15.4
         version: 2.15.4
