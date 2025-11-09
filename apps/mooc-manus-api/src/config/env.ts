@@ -1,8 +1,16 @@
-export type Bindings = {
-  ENV: 'development' | 'production';
-  DATABASE_URL: string;
-  REDIS_HOST: string;
-  REDIS_PORT: string;
-  REDIS_DB: string;
-  REDIS_PASSWORD: string;
+type Env = {
+  env: 'development' | 'production';
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
 };
+
+const formatEnv = (): Env => {
+  const env = process.env.ENV ?? 'development';
+  const logLevel = process.env.LOG_LEVEL ?? 'info';
+
+  return {
+    env,
+    logLevel,
+  } as Env;
+};
+
+export const env = formatEnv();
