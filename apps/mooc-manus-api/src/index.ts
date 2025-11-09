@@ -1,17 +1,24 @@
 import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { logger } from './infrasturcture/logging/index.js';
-import type { Logger } from 'pino';
+import { createApiRouter } from './interface/endpoint/router.js';
+import statusRouter from './interface/endpoint/status-router.js';
 
-type Variables = {
-  requestId: string;
-  logger: Logger;
-};
+const app = createApiRouter();
+app.basePath('/api');
 
-const app = new Hono<{ Variables: Variables }>();
 app.use(requestId());
 app.use(logger);
+app.use(
+  '/api/*',
+  cors({
+    origin: '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowHeaders: ['*'],
+    credentials: true,
+  }),
+);
 
 app.get('/', (c) => {
   c.var.logger.info('Hello Hono!');
@@ -19,10 +26,12 @@ app.get('/', (c) => {
   return c.text('Hello Hono!');
 });
 
+app.route('/status', statusRouter);
+
 serve(
   {
     fetch: app.fetch,
-    port: 3000,
+    port: 8000,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);

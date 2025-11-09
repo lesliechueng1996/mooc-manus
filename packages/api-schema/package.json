@@ -1,5 +1,6 @@
 {
   "name": "@repo/api-schema",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "exports": {

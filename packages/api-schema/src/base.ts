@@ -6,3 +6,10 @@ export const responseSchema = z.object({
 });
 
 export type ResponseSchema = z.infer<typeof responseSchema>;
+
+export const createSuccessResponse = (data: object) => {
+  return responseSchema.parse({
+    message: 'success',
+    data,
+  });
+};

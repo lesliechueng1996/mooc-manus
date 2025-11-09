@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory';
-import { pinoHttp, type Options } from 'pino-http';
+import { type Options, pinoHttp } from 'pino-http';
 import { env } from '@/config/env.js';
 
 const loggerConfig: Options = {
