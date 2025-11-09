@@ -5,6 +5,7 @@ import { logger } from './infrasturcture/logging/index.js';
 import { createApiRouter } from './interface/endpoint/router.js';
 import statusRouter from './interface/endpoint/status-router.js';
 import { exceptionHandler } from './interface/error/exception-handler.js';
+import { NotFoundException } from './application/error/exception.js';
 
 const app = createApiRouter();
 
@@ -19,6 +20,9 @@ app.use(
     credentials: true,
   }),
 );
+app.notFound(() => {
+  throw new NotFoundException();
+});
 app.onError(exceptionHandler);
 
 app.get('/', (c) => {
