@@ -26,6 +26,9 @@ importers:
       '@repo/api-schema':
         specifier: workspace:*
         version: link:../../packages/api-schema
+      '@repo/node-redis':
+        specifier: workspace:*
+        version: link:../../packages/node-redis
       hono:
         specifier: ^4.10.4
         version: 4.10.4
@@ -35,9 +38,6 @@ importers:
       pino-http:
         specifier: ^11.0.0
         version: 11.0.0
-      redis:
-        specifier: ^5.9.0
-        version: 5.9.0
     devDependencies:
       '@types/node':
         specifier: ^20.11.17
@@ -91,6 +91,12 @@ importers:
       zod:
         specifier: ^4.1.12
         version: 4.1.12
+
+  packages/node-redis:
+    dependencies:
+      redis:
+        specifier: ^5.9.0
+        version: 5.9.0
 
 packages:
 

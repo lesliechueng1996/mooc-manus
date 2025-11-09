@@ -1,17 +1,6 @@
-import { createClient } from 'redis';
+import { createRedisClient } from '@repo/node-redis';
 import { env } from '@/config/env.js';
 
-export const redisClient = createClient({
-  url: env.redisUrl,
-});
+export { connectRedis, disconnectRedis } from '@repo/node-redis';
 
-export const connectRedis = async () => {
-  await redisClient.connect();
-  await redisClient.ping();
-  console.log('Redis connected');
-};
-
-export const disconnectRedis = async () => {
-  redisClient.close();
-  console.log('Redis disconnected');
-};
+export const redisClient = createRedisClient(env.redisUrl);

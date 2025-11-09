@@ -11,10 +11,10 @@
   "dependencies": {
     "@hono/node-server": "^1.19.6",
     "@repo/api-schema": "workspace:*",
+    "@repo/node-redis": "workspace:*",
     "hono": "^4.10.4",
     "pino": "^10.1.0",
-    "pino-http": "^11.0.0",
-    "redis": "^5.9.0"
+    "pino-http": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
