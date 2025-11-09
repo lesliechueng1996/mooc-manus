@@ -1,11 +1,15 @@
 import { serve } from '@hono/node-server';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
+import { NotFoundException } from './application/error/exception.js';
 import { logger } from './infrasturcture/logging/index.js';
+import {
+  connectRedis,
+  disconnectRedis,
+} from './infrasturcture/storage/redis.js';
 import { createApiRouter } from './interface/endpoint/router.js';
 import statusRouter from './interface/endpoint/status-router.js';
 import { exceptionHandler } from './interface/error/exception-handler.js';
-import { NotFoundException } from './application/error/exception.js';
 
 const app = createApiRouter();
 
@@ -36,6 +40,8 @@ apiRouter.route('/status', statusRouter);
 
 app.route('/api', apiRouter);
 
+await connectRedis();
+
 serve(
   {
     fetch: app.fetch,
@@ -45,3 +51,8 @@ serve(
     console.log(`Server is running on http://localhost:${info.port}`);
   },
 );
+
+process.on('SIGINT', async () => {
+  await disconnectRedis();
+  process.exit(0);
+});

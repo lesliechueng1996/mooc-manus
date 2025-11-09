@@ -13,7 +13,8 @@
     "@repo/api-schema": "workspace:*",
     "hono": "^4.10.4",
     "pino": "^10.1.0",
-    "pino-http": "^11.0.0"
+    "pino-http": "^11.0.0",
+    "redis": "^5.9.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
