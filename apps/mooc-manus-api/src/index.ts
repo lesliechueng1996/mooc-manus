@@ -10,6 +10,7 @@ import {
 import { createApiRouter } from './interface/endpoint/router.js';
 import statusRouter from './interface/endpoint/status-router.js';
 import { exceptionHandler } from './interface/error/exception-handler.js';
+import { databaseClient } from './infrasturcture/storage/database.js';
 
 const app = createApiRouter();
 
@@ -29,13 +30,16 @@ app.notFound(() => {
 });
 app.onError(exceptionHandler);
 
-app.get('/', (c) => {
+app.get('/', async (c) => {
+  const demos = await databaseClient.demo.findMany();
+  console.log(demos);
   c.var.logger.info('Hello Hono!');
   c.var.logger.error('Hello Hono!!!');
   return c.text('Hello Hono!');
 });
 
 const apiRouter = createApiRouter();
+
 apiRouter.route('/status', statusRouter);
 
 app.route('/api', apiRouter);
