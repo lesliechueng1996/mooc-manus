@@ -3,6 +3,8 @@ import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { NotFoundException } from './application/error/exception.js';
 import { logger } from './infrasturcture/logging/index.js';
+import { connectCos, destroyCosClient } from './infrasturcture/storage/cos.js';
+import { databaseClient } from './infrasturcture/storage/database.js';
 import {
   connectRedis,
   disconnectRedis,
@@ -10,7 +12,6 @@ import {
 import { createApiRouter } from './interface/endpoint/router.js';
 import statusRouter from './interface/endpoint/status-router.js';
 import { exceptionHandler } from './interface/error/exception-handler.js';
-import { databaseClient } from './infrasturcture/storage/database.js';
 
 const app = createApiRouter();
 
@@ -45,6 +46,7 @@ apiRouter.route('/status', statusRouter);
 app.route('/api', apiRouter);
 
 await connectRedis();
+connectCos();
 
 serve(
   {
@@ -58,5 +60,6 @@ serve(
 
 process.on('SIGINT', async () => {
   await disconnectRedis();
+  destroyCosClient();
   process.exit(0);
 });
