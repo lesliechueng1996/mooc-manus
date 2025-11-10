@@ -1,135 +1,69 @@
-# Turborepo starter
+# Mooc Manus
 
-This Turborepo starter is maintained by the Turborepo core team.
+## Overview
 
-## Using this example
+Mooc Manus is a pnpm-powered monorepo for building a general-purpose multi-agent platform. A Hono-based API coordinates agent orchestration, storage, and external integrations, while a Next.js front end surfaces agent outputs and controls. Shared domain packages for logging, schemas, database access, and storage keep functionality consistent across services.
 
-Run the following command:
+## Tech Stack
 
-```sh
-npx create-turbo@latest
-```
+- **Monorepo & Tooling**: Turborepo, pnpm workspaces, TypeScript, Biome
+- **Backend**: Hono (`apps/mooc-manus-api`), `@repo/prisma-database`, `@repo/pino-log`, `@repo/node-redis`, `@repo/tencent-cos`
+- **Frontend**: Next.js 16, React 19 (`apps/mooc-manus-ui`)
+- **Persistence & Infrastructure**: PostgreSQL, Redis, Prisma ORM, Tencent COS SDK
+- **Runtime**: Node.js (>= 18), Docker Compose for local services
 
-## What's inside?
+## Repository Layout
 
-This Turborepo includes the following packages/apps:
+- `apps/mooc-manus-api`: Hono API service
+- `apps/mooc-manus-ui`: Next.js web application
+- `packages/api-schema`: Shared API contracts
+- `packages/prisma-database`: Prisma client and migration utilities
+- `packages/node-redis`: Redis client wrapper
+- `packages/tencent-cos`: Tencent Cloud Object Storage utilities
+- `packages/pino-log`: Pino-based logging helpers
 
-### Apps and Packages
+## Requirements
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- Node.js `>= 18`
+- pnpm `9.x` (automatic via `packageManager` metadata)
+- Docker (optional, for local PostgreSQL and Redis)
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Setup
 
-### Utilities
+1. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
+2. **Prepare environment variables**
+   - Create `apps/mooc-manus-api/.env` (or export variables) with:
+     - `ENV` (default `development`)
+     - `LOG_LEVEL` (default `info`)
+     - `DATABASE_URL` (default `postgresql://localhost:5432/mooc-manus`)
+     - `REDIS_URL` (default `redis://localhost:6379`)
+     - `TENCENT_COS_SECRET_ID`, `TENCENT_COS_SECRET_KEY`, `TENCENT_COS_BUCKET`, `TENCENT_COS_REGION`
+3. **Start infrastructure (optional)**
+   ```bash
+   docker compose up -d
+   ```
+4. **Launch services**
+   ```bash
+   pnpm dev
+   ```
+   Turborepo will start both API and UI applications in watch mode.
 
-This Turborepo has some additional tools already setup for you:
+## Development Scripts
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- `pnpm dev` – Run all apps in development mode
+- `pnpm build` – Build all packages and apps
+- `pnpm lint` – Run Biome checks across the workspace
+- `pnpm format` – Auto-format files using Biome
+- `pnpm --filter @repo/prisma-database db:migrate` – Apply Prisma migrations
 
-### Build
+## Troubleshooting
 
-To build all apps and packages, run the following command:
+- Ensure Docker containers for PostgreSQL and Redis are running or adjust `DATABASE_URL`/`REDIS_URL`.
+- Regenerate Prisma client after schema changes:
+  ```bash
+  pnpm --filter @repo/prisma-database db:generate
+  ```
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
