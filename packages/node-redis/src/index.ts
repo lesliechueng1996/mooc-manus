@@ -1,11 +1,11 @@
 import { getLogger } from '@repo/pino-log';
-import { createClient, type RedisClientType } from 'redis';
+import { Redis } from 'ioredis';
 
 const logger = getLogger();
 
-let redisClient: RedisClientType | undefined;
+let redisClient: Redis | undefined;
 
-const ensureRedisClient = (): RedisClientType => {
+const ensureRedisClient = (): Redis => {
   if (!redisClient) {
     throw new Error(
       'Redis client has not been initialized. Call createRedisClient first.',
@@ -15,13 +15,8 @@ const ensureRedisClient = (): RedisClientType => {
   return redisClient;
 };
 
-export const createRedisClient = (url: string): RedisClientType => {
-  redisClient = createClient({
-    url,
-    commandOptions: {
-      timeout: 10000,
-    },
-  });
+export const createRedisClient = (url: string): Redis => {
+  redisClient = new Redis(url);
 
   redisClient.on('error', (error) => {
     logger.error(error, 'Redis error occurred');
@@ -30,25 +25,20 @@ export const createRedisClient = (url: string): RedisClientType => {
   return redisClient;
 };
 
-export const getRedisClient = (): RedisClientType => ensureRedisClient();
+export const getRedisClient = (): Redis => ensureRedisClient();
 
 export const connectRedis = async (): Promise<void> => {
   const client = ensureRedisClient();
-
-  if (!client.isOpen) {
-    await client.connect();
-  }
 
   await client.ping();
   logger.info('Redis connected');
 };
 
 export const disconnectRedis = async (): Promise<void> => {
-  const client = ensureRedisClient();
+  const redisClient = ensureRedisClient();
 
-  if (client.isOpen) {
-    await client.quit();
-  }
-
+  redisClient.disconnect();
   logger.info('Redis disconnected');
 };
+
+export { acquireLock, releaseLock } from './lock.js';

@@ -14,7 +14,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "redis": "^5.9.0",
-    "@repo/pino-log": "workspace:*"
+    "@repo/pino-log": "workspace:*",
+    "ioredis": "^5.8.2",
+    "uuid": "^13.0.0"
   }
 }

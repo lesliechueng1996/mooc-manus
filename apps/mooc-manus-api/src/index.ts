@@ -37,7 +37,10 @@ app.onError(exceptionHandler);
 
 app.get('/', async (c) => {
   c.var.logger.info('Hello Hono!');
-  c.var.logger.error('Hello Hono!!!');
+  // const messageQueue = createRedisStreamMessageQueue('test');
+  // await messageQueue.put({ data: 'test' });
+  // const message = await messageQueue.pop();
+  // c.var.logger.info(`message: ${JSON.stringify(message)}`);
   return c.text('Hello Hono!');
 });
 
