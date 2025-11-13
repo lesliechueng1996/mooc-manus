@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server';
+import { contextStorage } from 'hono/context-storage';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { NotFoundException } from './application/error/exception.js';
@@ -8,14 +9,18 @@ import {
   connectRedis,
   disconnectRedis,
 } from './infrasturcture/storage/redis.js';
+import appConfigRouter from './interface/endpoint/app-config-router.js';
 import { createApiRouter } from './interface/endpoint/router.js';
 import statusRouter from './interface/endpoint/status-router.js';
 import { exceptionHandler } from './interface/error/exception-handler.js';
+import { userIdMiddleware } from './interface/middleware/user-id-middleware.js';
 
 const app = createApiRouter();
 
 app.use(requestId());
 app.use(loggerMiddleware);
+app.use(userIdMiddleware);
+app.use(contextStorage());
 app.use(
   '/api/*',
   cors({
@@ -39,6 +44,7 @@ app.get('/', async (c) => {
 const apiRouter = createApiRouter();
 
 apiRouter.route('/status', statusRouter);
+apiRouter.route('/app-config', appConfigRouter);
 
 app.route('/api', apiRouter);
 

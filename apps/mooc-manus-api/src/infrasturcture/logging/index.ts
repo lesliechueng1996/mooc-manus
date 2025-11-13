@@ -1,6 +1,8 @@
 import { createLoggerConfig, getLogger, pinoHttp } from '@repo/pino-log';
+import { getContext } from 'hono/context-storage';
 import { createMiddleware } from 'hono/factory';
 import { env } from '@/config/env.js';
+import type { Env } from '@/type.js';
 
 const loggerConfig = createLoggerConfig(env.logLevel);
 
@@ -15,3 +17,7 @@ export const loggerMiddleware = createMiddleware(async (c, next) => {
 });
 
 export const logger = getLogger();
+
+export const getContextLogger = () => {
+  return getContext<Env>().var.logger;
+};

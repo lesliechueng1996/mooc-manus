@@ -8,11 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Demo {
+model AppConfig {
   id        String   @id @default(cuid())
-  name      String
+  userId    String   @unique @map("user_id")
+  llmConfig Json     @map("llm_config")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("demo")
+  @@map("t_app_config")
 }
