@@ -18,6 +18,13 @@ const ensureRedisClient = (): RedisClientType => {
 export const createRedisClient = (url: string): RedisClientType => {
   redisClient = createClient({
     url,
+    commandOptions: {
+      timeout: 10000,
+    },
+  });
+
+  redisClient.on('error', (error) => {
+    logger.error(error, 'Redis error occurred');
   });
 
   return redisClient;
