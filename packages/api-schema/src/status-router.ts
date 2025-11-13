@@ -1,3 +1,5 @@
-import type { ResponseSchema } from './base.js';
-
-export type GetStatusResponse = ResponseSchema;
+export type GetStatusResponse = {
+  service: string;
+  status: 'ok' | 'error';
+  details: string;
+};
