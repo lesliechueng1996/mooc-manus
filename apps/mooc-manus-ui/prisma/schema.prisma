@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -66,14 +65,4 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
-}
-
-model AppConfig {
-  id        String   @id @default(cuid())
-  userId    String   @unique @map("user_id")
-  llmConfig Json     @map("llm_config")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("t_app_config")
 }
