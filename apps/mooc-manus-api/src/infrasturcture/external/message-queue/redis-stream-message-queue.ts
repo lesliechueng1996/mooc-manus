@@ -3,22 +3,18 @@ import type { MessageQueue } from '@/domain/external/message-queue.js';
 import { getContextLogger } from '@/infrasturcture/logging/index.js';
 import { redisClient } from '@/infrasturcture/storage/redis.js';
 
-type MessageData = {
-  data: string;
-};
-
 export const createRedisStreamMessageQueue = (
   streamName: string,
-): MessageQueue<MessageData> => {
+): MessageQueue => {
   const logger = getContextLogger();
   const lockExpireSeconds = 10;
 
-  const put: MessageQueue<MessageData>['put'] = async (message) => {
+  const put: MessageQueue['put'] = async (message) => {
     logger.info(`Putting message to ${streamName}, message: ${message.data}`);
     return await redisClient.xadd(streamName, '*', 'data', message.data);
   };
 
-  const get: MessageQueue<MessageData>['get'] = async (startId, blockMs) => {
+  const get: MessageQueue['get'] = async (startId, blockMs) => {
     logger.info(
       `Getting message from ${streamName}, startId: ${startId}, blockMs: ${blockMs}`,
     );
@@ -53,7 +49,7 @@ export const createRedisStreamMessageQueue = (
     };
   };
 
-  const pop: MessageQueue<MessageData>['pop'] = async () => {
+  const pop: MessageQueue['pop'] = async () => {
     logger.info(`Popping first message from ${streamName}`);
     const lockKey = `lock:${streamName}:pop`;
     const lockValue = await acquireLock(lockKey, lockExpireSeconds, 10);
@@ -89,23 +85,21 @@ export const createRedisStreamMessageQueue = (
     }
   };
 
-  const clear: MessageQueue<MessageData>['clear'] = async () => {
+  const clear: MessageQueue['clear'] = async () => {
     logger.info(`Clearing ${streamName}`);
     await redisClient.xtrim(streamName, 'MAXLEN', 0);
   };
 
-  const size: MessageQueue<MessageData>['size'] = async () => {
+  const size: MessageQueue['size'] = async () => {
     return await redisClient.xlen(streamName);
   };
 
-  const isEmpty: MessageQueue<MessageData>['isEmpty'] = async () => {
+  const isEmpty: MessageQueue['isEmpty'] = async () => {
     const total = await size();
     return total === 0;
   };
 
-  const deleteMessage: MessageQueue<MessageData>['deleteMessage'] = async (
-    id,
-  ) => {
+  const deleteMessage: MessageQueue['deleteMessage'] = async (id) => {
     try {
       await redisClient.xdel(streamName, id);
       return true;

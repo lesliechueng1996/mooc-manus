@@ -18,6 +18,7 @@
     "@repo/tencent-cos": "workspace:*",
     "hono": "^4.10.4",
     "openai": "^6.8.1",
+    "uuid": "^13.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

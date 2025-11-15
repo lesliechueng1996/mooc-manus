@@ -1,20 +1,17 @@
 import type { MessageQueue } from './message-queue.js';
 
 export type TaskRunner = {
-  invoke: (task: Task) => void;
-  destroy: () => void;
-  onDone: (task: Task) => void;
+  invoke: (task: Task) => Promise<void>;
+  destroy: () => Promise<void>;
+  onDone: (task: Task) => Promise<void>;
 };
 
 export type Task = {
-  run: () => void;
-  cancel: () => void;
+  invoke: () => void;
+  cancel: () => boolean;
   inputStream: MessageQueue;
   outputStream: MessageQueue;
   id: string;
-  done: boolean;
+  done: () => boolean;
+  taskRunner: TaskRunner;
 };
-
-export type getTask = (taskId: string) => Promise<Task | null>;
-export type createTask = (taskRunner: TaskRunner) => Promise<Task>;
-export type destoryAllTasks = () => Promise<void>;
