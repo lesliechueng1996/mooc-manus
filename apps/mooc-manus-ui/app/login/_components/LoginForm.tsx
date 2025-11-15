@@ -25,6 +25,17 @@ const LoginForm = () => {
     }
   };
 
+  const handleGitlabLogin = async () => {
+    const { error } = await authClient.signIn.social({
+      provider: 'gitlab',
+    });
+    if (error) {
+      toast.error(error.message || 'Failed to login');
+    } else {
+      toast.success('Login successful, redirecting to home...');
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden p-0">
@@ -53,7 +64,11 @@ const LoginForm = () => {
                   </svg>
                   Login with GitHub
                 </Button>
-                <Button variant="outline" type="button">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={handleGitlabLogin}
+                >
                   <svg
                     role="img"
                     viewBox="0 0 24 24"
