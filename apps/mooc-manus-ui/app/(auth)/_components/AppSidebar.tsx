@@ -1,6 +1,16 @@
 'use client';
 
-import { PanelLeft, PanelLeftOpen } from 'lucide-react';
+import {
+  PanelLeft,
+  PanelLeftOpen,
+  House,
+  User,
+  Bot,
+  Blocks,
+  Unplug,
+  HatGlasses,
+  Plus,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -16,9 +26,47 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import NavUser from './NavUser';
+import Link from 'next/link';
 
 type Props = {
   className?: string;
+};
+
+const menus = {
+  main: [
+    {
+      title: 'Home',
+      url: '/',
+      icon: House,
+    },
+    {
+      title: 'Space',
+      url: '/space',
+      icon: User,
+    },
+    {
+      title: 'Agent',
+      url: '/agent',
+      icon: HatGlasses,
+    },
+  ],
+  discover: [
+    {
+      title: 'Apps',
+      url: '/apps',
+      icon: Bot,
+    },
+    {
+      title: 'Plugins',
+      url: '/plugins',
+      icon: Blocks,
+    },
+    {
+      title: 'API',
+      url: '/api',
+      icon: Unplug,
+    },
+  ],
 };
 
 const AppSidebar = ({ className }: Props) => {
@@ -44,8 +92,44 @@ const AppSidebar = ({ className }: Props) => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Tasks</SidebarGroupLabel>
-          {/* TODO */}
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Button>
+                  <Plus /> {open && 'Create AI App'}
+                </Button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarMenu>
+            {menus.main.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Discover</SidebarGroupLabel>
+          <SidebarMenu>
+            {menus.discover.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>

@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth';
 import AppSidebar from './_components/AppSidebar';
@@ -19,13 +19,7 @@ const AuthLayout = async ({ children }: Props) => {
   }
 
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': '20rem',
-        } as CSSProperties
-      }
-    >
+    <SidebarProvider>
       <AppSidebar />
 
       <SidebarInset>{children}</SidebarInset>
