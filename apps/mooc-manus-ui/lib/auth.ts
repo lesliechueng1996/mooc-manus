@@ -16,4 +16,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GITLAB_CLIENT_SECRET as string,
     },
   },
+  emailAndPassword: {
+    enabled: true,
+  },
 });

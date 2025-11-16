@@ -1,11 +1,17 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Field,
+  FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
@@ -13,7 +19,34 @@ import {
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth-client';
 
+const formSchema = z.object({
+  email: z.email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
 const LoginForm = () => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const { error } = await authClient.signIn.email({
+      email: data.email,
+      password: data.password,
+      rememberMe: true,
+      callbackURL: '/',
+    });
+    if (error) {
+      toast.error(error.message || 'Failed to login');
+    } else {
+      toast.success('Login successful, redirecting to home...');
+    }
+  };
+
   const handleGithubLogin = async () => {
     const { error } = await authClient.signIn.social({
       provider: 'github',
@@ -40,7 +73,7 @@ const LoginForm = () => {
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -83,7 +116,7 @@ const LoginForm = () => {
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
               </FieldSeparator>
-              <Field>
+              {/* <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
@@ -91,9 +124,40 @@ const LoginForm = () => {
                   placeholder="m@example.com"
                   required
                 />
-              </Field>
-              <Field>
-                <div className="flex items-center">
+              </Field> */}
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                      {...field}
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <Input {...field} id="password" type="password" required />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              {/* <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <a
                     href="/forgot-password"
@@ -101,14 +165,13 @@ const LoginForm = () => {
                   >
                     Forgot your password?
                   </a>
-                </div>
-                <Input id="password" type="password" required />
-              </Field>
+                </div> */}
               <Field>
                 <Button type="submit">Login</Button>
-                {/* <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="/signup">Sign up</a>
-                </FieldDescription> */}
+                <FieldDescription className="text-center">
+                  Don&apos;t have an account?{' '}
+                  <Link href="/signup">Sign up</Link>
+                </FieldDescription>
               </Field>
             </FieldGroup>
           </form>

@@ -1,5 +1,8 @@
+'use client';
+
 import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -17,11 +20,13 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { authClient } from '@/lib/auth-client';
+import ChangePwdDialog from './ChangePwdDialog';
 
 const NavUser = () => {
   const { data: session } = authClient.useSession();
-
+  const [openChangePwdDialog, setOpenChangePwdDialog] = useState(false);
   const router = useRouter();
+
   const handleLogout = async () => {
     authClient.signOut({
       fetchOptions: {
@@ -33,10 +38,14 @@ const NavUser = () => {
     });
   };
 
+  const handleOpenChangePwdDialog = () => {
+    setOpenChangePwdDialog(true);
+  };
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -84,18 +93,22 @@ const NavUser = () => {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleOpenChangePwdDialog}>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onSelect={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ChangePwdDialog
+          open={openChangePwdDialog}
+          onOpenChange={setOpenChangePwdDialog}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   );
