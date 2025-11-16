@@ -1,8 +1,9 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth';
-import Sidebar from './_components/Sidebar';
+import AppSidebar from './_components/AppSidebar';
 
 type Props = {
   children: ReactNode;
@@ -18,11 +19,17 @@ const AuthLayout = async ({ children }: Props) => {
   }
 
   return (
-    <div className="h-screen w-screen flex">
-      <Sidebar className="w-80 h-full" />
+    <SidebarProvider
+      style={
+        {
+          '--sidebar-width': '20rem',
+        } as CSSProperties
+      }
+    >
+      <AppSidebar />
 
-      <div className="flex-1">{children}</div>
-    </div>
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
   );
 };
 

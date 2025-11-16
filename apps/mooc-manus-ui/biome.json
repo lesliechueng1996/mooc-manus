@@ -9,7 +9,8 @@
       "!.next",
       "!dist",
       "!build",
-      "!components/ui"
+      "!components/ui",
+      "!next-env.d.ts"
     ]
   },
   "linter": {
