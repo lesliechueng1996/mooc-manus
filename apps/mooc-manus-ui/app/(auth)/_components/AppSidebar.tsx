@@ -1,16 +1,17 @@
 'use client';
 
 import {
+  Blocks,
+  Bot,
+  HatGlasses,
+  House,
   PanelLeft,
   PanelLeftOpen,
-  House,
-  User,
-  Bot,
-  Blocks,
-  Unplug,
-  HatGlasses,
   Plus,
+  Unplug,
+  User,
 } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -26,7 +27,6 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import NavUser from './NavUser';
-import Link from 'next/link';
 
 type Props = {
   className?: string;
