@@ -1,8 +1,8 @@
-import type { LlmConfig } from '@/domain/models/app-config.js';
+import type { LlmConfig } from '@/domain/models/app-config';
 import {
   loadByUserId,
   saveAppConfig,
-} from '@/domain/repository/app-config-repository.js';
+} from '@/domain/repository/app-config-repository';
 
 const loadAppConfig = (userId: string) => loadByUserId(userId);
 

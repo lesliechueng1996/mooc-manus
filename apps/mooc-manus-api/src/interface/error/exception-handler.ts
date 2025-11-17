@@ -1,8 +1,8 @@
 import { createErrorResponse } from '@repo/api-schema';
 import type { ErrorHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { AppException } from '@/application/error/exception.js';
-import type { Context } from '@/type.js';
+import { AppException } from '@/application/error/exception';
+import type { Context } from '@/type';
 
 export const exceptionHandler: ErrorHandler<Context> = (err, c) => {
   const logger = c.var.logger;

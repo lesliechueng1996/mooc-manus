@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
 import type { ChatCompletion } from 'openai/resources';
-import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions.js';
-import { InternalServerErrorException } from '@/application/error/exception.js';
-import type { LlmClient } from '@/domain/external/llm.js';
-import type { LlmConfig } from '@/domain/models/app-config.js';
-import { getContextLogger } from '@/infrasturcture/logging/index.js';
+import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
+import { InternalServerErrorException } from '@/application/error/exception';
+import type { LlmClient } from '@/domain/external/llm';
+import type { LlmConfig } from '@/domain/models/app-config';
+import { getContextLogger } from '@/infrasturcture/logging/index';
 
 export const createClient = (llmConfig: LlmConfig): LlmClient => {
   const logger = getContextLogger();

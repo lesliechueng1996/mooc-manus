@@ -1,5 +1,5 @@
 import { createCosClient } from '@repo/tencent-cos';
-import { env } from '@/config/env.js';
+import { env } from '@/config/env';
 
 export { destroyCosClient } from '@repo/tencent-cos';
 

@@ -1,7 +1,7 @@
-import type { HealthChecker } from '@/domain/external/health-checker.js';
-import type { HealthStatus } from '@/domain/models/health-status.js';
-import { getContextLogger } from '@/infrasturcture/logging/index.js';
-import { redisClient } from '@/infrasturcture/storage/redis.js';
+import type { HealthChecker } from '@/domain/external/health-checker';
+import type { HealthStatus } from '@/domain/models/health-status';
+import { getContextLogger } from '@/infrasturcture/logging/index';
+import { redisClient } from '@/infrasturcture/storage/redis';
 
 export const createRedisHealthChecker = (): HealthChecker => {
   const logger = getContextLogger();

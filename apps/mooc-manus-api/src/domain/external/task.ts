@@ -1,4 +1,4 @@
-import type { MessageQueue } from './message-queue.js';
+import type { MessageQueue } from './message-queue';
 
 export type TaskRunner = {
   invoke: (task: Task) => Promise<void>;

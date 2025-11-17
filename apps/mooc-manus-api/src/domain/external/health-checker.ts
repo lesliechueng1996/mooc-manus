@@ -1,4 +1,4 @@
-import type { HealthStatus } from '../models/health-status.js';
+import type { HealthStatus } from '../models/health-status';
 
 export type HealthChecker = {
   service: string;

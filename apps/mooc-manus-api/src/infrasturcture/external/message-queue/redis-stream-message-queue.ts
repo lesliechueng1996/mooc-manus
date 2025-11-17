@@ -1,7 +1,7 @@
 import { acquireLock, releaseLock } from '@repo/node-redis';
-import type { MessageQueue } from '@/domain/external/message-queue.js';
-import { getContextLogger } from '@/infrasturcture/logging/index.js';
-import { redisClient } from '@/infrasturcture/storage/redis.js';
+import type { MessageQueue } from '@/domain/external/message-queue';
+import { getContextLogger } from '@/infrasturcture/logging/index';
+import { redisClient } from '@/infrasturcture/storage/redis';
 
 export const createRedisStreamMessageQueue = (
   streamName: string,

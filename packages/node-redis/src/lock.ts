@@ -1,7 +1,7 @@
 import { getLogger } from '@repo/pino-log';
 import type { Callback, Redis, Result } from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
-import { getRedisClient } from './index.js';
+import { getRedisClient } from './index';
 
 const logger = getLogger();
 

@@ -5,9 +5,9 @@ import {
 import {
   getLlmConfig,
   updateLlmConfig,
-} from '@/application/services/app-config-service.js';
-import { createApiRouter } from './router.js';
-import { zValidator } from './validator.js';
+} from '@/application/services/app-config-service';
+import { createApiRouter } from './router';
+import { zValidator } from './validator';
 
 const appConfigRouter = createApiRouter();
 

@@ -3,7 +3,7 @@ import { getLogger } from '@repo/pino-log';
 import COS from 'cos-nodejs-sdk-v5';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
-import { withTempFile } from './temp-file.js';
+import { withTempFile } from './temp-file';
 
 const logger = getLogger();
 

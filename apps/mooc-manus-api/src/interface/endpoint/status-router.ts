@@ -1,6 +1,6 @@
 import { createResponse, createSuccessResponse } from '@repo/api-schema';
-import { checkAll } from '@/application/services/status-service.js';
-import { createApiRouter } from './router.js';
+import { checkAll } from '@/application/services/status-service';
+import { createApiRouter } from './router';
 
 const statusRouter = createApiRouter();
 

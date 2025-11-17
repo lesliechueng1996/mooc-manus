@@ -2,18 +2,15 @@ import { serve } from '@hono/node-server';
 import { contextStorage } from 'hono/context-storage';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
-import { NotFoundException } from './application/error/exception.js';
-import { logger, loggerMiddleware } from './infrasturcture/logging/index.js';
-import { connectCos, destroyCosClient } from './infrasturcture/storage/cos.js';
-import {
-  connectRedis,
-  disconnectRedis,
-} from './infrasturcture/storage/redis.js';
-import appConfigRouter from './interface/endpoint/app-config-router.js';
-import { createApiRouter } from './interface/endpoint/router.js';
-import statusRouter from './interface/endpoint/status-router.js';
-import { exceptionHandler } from './interface/error/exception-handler.js';
-import { userIdMiddleware } from './interface/middleware/user-id-middleware.js';
+import { NotFoundException } from './application/error/exception';
+import { logger, loggerMiddleware } from './infrasturcture/logging/index';
+import { connectCos, destroyCosClient } from './infrasturcture/storage/cos';
+import { connectRedis, disconnectRedis } from './infrasturcture/storage/redis';
+import appConfigRouter from './interface/endpoint/app-config-router';
+import { createApiRouter } from './interface/endpoint/router';
+import statusRouter from './interface/endpoint/status-router';
+import { exceptionHandler } from './interface/error/exception-handler';
+import { userIdMiddleware } from './interface/middleware/user-id-middleware';
 
 const app = createApiRouter();
 

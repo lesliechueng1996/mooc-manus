@@ -1,5 +1,5 @@
-import { createPostgresHealthChecker } from '@/infrasturcture/external/health-checker/postgres-health-checker.js';
-import { createRedisHealthChecker } from '@/infrasturcture/external/health-checker/redis-health-checker.js';
+import { createPostgresHealthChecker } from '@/infrasturcture/external/health-checker/postgres-health-checker';
+import { createRedisHealthChecker } from '@/infrasturcture/external/health-checker/redis-health-checker';
 
 export const checkAll = async () => {
   const checkers = [createPostgresHealthChecker(), createRedisHealthChecker()];

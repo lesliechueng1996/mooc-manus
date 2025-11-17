@@ -1,7 +1,7 @@
-import type { HealthChecker } from '@/domain/external/health-checker.js';
-import type { HealthStatus } from '@/domain/models/health-status.js';
-import { getContextLogger } from '@/infrasturcture/logging/index.js';
-import { databaseClient } from '@/infrasturcture/storage/database.js';
+import type { HealthChecker } from '@/domain/external/health-checker';
+import type { HealthStatus } from '@/domain/models/health-status';
+import { getContextLogger } from '@/infrasturcture/logging/index';
+import { databaseClient } from '@/infrasturcture/storage/database';
 
 export const createPostgresHealthChecker = (): HealthChecker => {
   const logger = getContextLogger();

@@ -1,3 +1,3 @@
-export * from './app-config-router.js';
-export * from './base.js';
-export * from './status-router.js';
+export * from './app-config-router';
+export * from './base';
+export * from './status-router';

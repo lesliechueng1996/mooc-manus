@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { Task, TaskRunner } from '@/domain/external/task.js';
-import { getContextLogger } from '@/infrasturcture/logging/index.js';
-import { createRedisStreamMessageQueue } from '../message-queue/redis-stream-message-queue.js';
+import type { Task, TaskRunner } from '@/domain/external/task';
+import { getContextLogger } from '@/infrasturcture/logging/index';
+import { createRedisStreamMessageQueue } from '../message-queue/redis-stream-message-queue';
 
 const taskRegistry = new Map<string, Task>();
 

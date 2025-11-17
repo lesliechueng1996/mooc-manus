@@ -1,7 +1,7 @@
-import { InternalServerErrorException } from '@/application/error/exception.js';
-import { type AppConfig, appConfigSchema } from '@/domain/models/app-config.js';
-import { getContextLogger } from '../logging/index.js';
-import { databaseClient } from '../storage/database.js';
+import { InternalServerErrorException } from '@/application/error/exception';
+import { type AppConfig, appConfigSchema } from '@/domain/models/app-config';
+import { getContextLogger } from '../logging/index';
+import { databaseClient } from '../storage/database';
 
 const createDefaultAppConfigIfNotExists = async (
   userId: string,
