@@ -26,27 +26,27 @@ type Category = {
 export const categories: Category[] = [
   {
     category: 'search',
-    name: '搜索',
+    name: 'Search',
     icon: `${host}/icons/search.svg`,
   },
   {
     category: 'image',
-    name: '图片',
+    name: 'Image',
     icon: `${host}/icons/image.svg`,
   },
   {
     category: 'weather',
-    name: '天气',
+    name: 'Weather',
     icon: `${host}/icons/weather.svg`,
   },
   {
     category: 'tool',
-    name: '工具',
+    name: 'Tool',
     icon: `${host}/icons/tool.svg`,
   },
   {
     category: 'other',
-    name: '其他',
+    name: 'Other',
     icon: `${host}/icons/other.svg`,
   },
 ];
