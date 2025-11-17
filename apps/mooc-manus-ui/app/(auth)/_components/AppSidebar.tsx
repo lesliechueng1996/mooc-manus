@@ -57,8 +57,8 @@ const menus = {
       icon: Bot,
     },
     {
-      title: 'Plugins',
-      url: '/plugins',
+      title: 'Tool Store',
+      url: '/store/tools',
       icon: Blocks,
     },
     {

@@ -1,10 +1,11 @@
+import type { LevelWithSilent } from 'pino';
 import type { Options } from 'pino-http';
-import { createLogger } from './logger.js';
+import { createLogger } from './logger';
 
 export const createLoggerConfig = (logLevel: string) => {
   const logger = createLogger(logLevel);
   const loggerConfig: Options = {
-    useLevel: logLevel,
+    useLevel: logLevel as LevelWithSilent,
     autoLogging: true,
     logger,
     customReceivedMessage: (req) => {

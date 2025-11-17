@@ -1,0 +1,24 @@
+{
+  "name": "@repo/internal-langchain",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./openai": "./src/openai.ts",
+    "./community": "./src/community.ts"
+  },
+  "scripts": {
+    "lint": "biome check",
+    "format": "biome check --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/community": "^1.0.3",
+    "@langchain/core": "^1.0.5",
+    "@langchain/openai": "^1.1.1",
+    "langchain": "^1.0.4"
+  }
+}

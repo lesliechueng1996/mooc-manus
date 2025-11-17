@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth';
 import AppSidebar from './_components/AppSidebar';
+import { ClientProvider } from './_components/ClientProvider';
 
 type Props = {
   children: ReactNode;
@@ -19,11 +20,13 @@ const AuthLayout = async ({ children }: Props) => {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
+    <ClientProvider>
+      <SidebarProvider>
+        <AppSidebar />
 
-      <SidebarInset>{children}</SidebarInset>
-    </SidebarProvider>
+        <SidebarInset>{children}</SidebarInset>
+      </SidebarProvider>
+    </ClientProvider>
   );
 };
 
