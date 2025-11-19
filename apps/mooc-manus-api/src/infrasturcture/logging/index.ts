@@ -1,4 +1,5 @@
-import { createLoggerConfig, getLogger, pinoHttp } from '@repo/pino-log';
+import { createLoggerConfig, getLogger } from '@repo/pino-log';
+import { pinoHttp } from '@repo/pino-log/pino-http';
 import { getContext } from 'hono/context-storage';
 import { createMiddleware } from 'hono/factory';
 import { env } from '@/config/env';

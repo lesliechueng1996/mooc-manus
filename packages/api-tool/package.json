@@ -1,11 +1,10 @@
 {
-  "name": "@repo/pino-log",
+  "name": "@repo/api-tool",
   "version": "1.0.0",
   "description": "",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./pino-http": "./src/pino-http.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "lint": "biome check",
@@ -15,10 +14,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "pino": "^10.1.0",
-    "pino-http": "^11.0.0"
-  },
-  "devDependencies": {
-    "pino-pretty": "^13.1.2"
+    "@repo/pino-log": "workspace:*",
+    "@repo/api-schema": "workspace:*",
+    "@repo/prisma-database": "workspace:*",
+    "zod": "^4.1.12"
   }
 }

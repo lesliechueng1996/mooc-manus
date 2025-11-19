@@ -1,8 +1,14 @@
 import * as fs from 'node:fs/promises';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@repo/api-schema';
 import { getLogger } from '@repo/pino-log';
 import COS from 'cos-nodejs-sdk-v5';
 import { format } from 'date-fns';
+import qcloudCosSts from 'qcloud-cos-sts';
 import { v4 as uuidv4 } from 'uuid';
+import { ALLOWED_IMAGE_EXTENSIONS, ALLOWED_IMAGE_SIZE } from './constant';
 import { withTempFile } from './temp-file';
 
 const logger = getLogger();
@@ -30,9 +36,40 @@ export const createCosClient = (data: {
   cosConfig.region = data.region;
 };
 
+const getTempCredential = async (fileKey: string) => {
+  const bucketName = process.env.TENCENT_COS_BUCKET ?? '';
+  const appId = bucketName.substring(1 + bucketName.lastIndexOf('-'));
+
+  const credential = await qcloudCosSts.getCredential({
+    secretId: process.env.TENCENT_COS_SECRET_ID ?? '',
+    secretKey: process.env.TENCENT_COS_SECRET_KEY ?? '',
+    policy: {
+      version: '2.0',
+      statement: [
+        {
+          action: ['name/cos:PutObject'],
+          effect: 'allow',
+          principal: { qcs: ['*'] },
+          resource: [
+            `qcs::cos:${process.env.TENCENT_COS_REGION ?? ''}:uid/${appId}:${bucketName}/${fileKey}`,
+          ],
+        },
+      ],
+    },
+  });
+
+  return {
+    tmpSecretId: credential.credentials.tmpSecretId,
+    tmpSecretKey: credential.credentials.tmpSecretKey,
+    sessionToken: credential.credentials.sessionToken,
+    startTime: credential.startTime,
+    expiredTime: credential.expiredTime,
+  };
+};
+
 export const getCosClient = () => {
   if (!cosClient) {
-    throw new Error('Cos client not initialized');
+    throw new InternalServerErrorException('Cos client not initialized');
   }
   return cosClient;
 };
@@ -52,7 +89,7 @@ export const uploadFile = async (data: {
   const fileKey = data.key ?? generateFileKey(ext);
   withTempFile(fileKey, async (tempFilePath) => {
     try {
-      logger.info(`暂存文件到: ${tempFilePath}`);
+      logger.info(`Temp file path: ${tempFilePath}`);
 
       const fileData = await data.file.arrayBuffer();
       await fs.writeFile(tempFilePath, Buffer.from(fileData));
@@ -68,7 +105,7 @@ export const uploadFile = async (data: {
             },
             (err, data) => {
               if (err) {
-                logger.error(`上传文件失败: ${err}`);
+                logger.error(`Upload file failed: ${err}`);
                 reject(err);
               } else {
                 resolve(data);
@@ -79,7 +116,7 @@ export const uploadFile = async (data: {
       );
 
       const result = await uploadPromise;
-      logger.info('上传文件成功');
+      logger.info('Upload file success');
 
       return {
         name: data.file.name,
@@ -90,10 +127,41 @@ export const uploadFile = async (data: {
         hash: result.ETag,
       };
     } catch (error) {
-      logger.error(`上传文件失败: ${error}`);
+      logger.error(`Upload file failed: ${error}`);
       throw error;
     }
   });
+};
+
+export const getUploadFileTempCredential = async (
+  fileName: string,
+  fileSize: number,
+) => {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  if (!ext) {
+    throw new BadRequestException('File format is incorrect');
+  }
+
+  if (ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+    if (fileSize > ALLOWED_IMAGE_SIZE) {
+      throw new BadRequestException('Image size exceeds the limit');
+    }
+
+    const fileKey = generateFileKey(ext);
+    const credential = await getTempCredential(fileKey);
+
+    return {
+      credential,
+      key: fileKey,
+      bucket: {
+        schema: process.env.TENCENT_COS_SCHEMA ?? '',
+        name: process.env.TENCENT_COS_BUCKET ?? '',
+        region: process.env.TENCENT_COS_REGION ?? '',
+      },
+    };
+  }
+
+  throw new BadRequestException('File extension is incorrect');
 };
 
 export const destroyCosClient = () => {

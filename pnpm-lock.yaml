@@ -93,6 +93,15 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.5))(@types/react@19.2.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@radix-ui/react-visually-hidden':
+        specifier: ^1.2.4
+        version: 1.2.4(@types/react-dom@19.2.3(@types/react@19.2.5))(@types/react@19.2.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@repo/api-schema':
+        specifier: workspace:*
+        version: link:../../packages/api-schema
+      '@repo/api-tool':
+        specifier: workspace:*
+        version: link:../../packages/api-tool
       '@repo/builtin-tool':
         specifier: workspace:*
         version: link:../../packages/builtin-tool
@@ -102,6 +111,9 @@ importers:
       '@repo/prisma-database':
         specifier: workspace:*
         version: link:../../packages/prisma-database
+      '@repo/tencent-cos':
+        specifier: workspace:*
+        version: link:../../packages/tencent-cos
       '@tanstack/react-query':
         specifier: ^5.90.10
         version: 5.90.10(react@19.2.0)
@@ -114,6 +126,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      cos-js-sdk-v5:
+        specifier: ^1.10.1
+        version: 1.10.1
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -185,6 +200,21 @@ importers:
         specifier: ^4.1.12
         version: 4.1.12
 
+  packages/api-tool:
+    dependencies:
+      '@repo/api-schema':
+        specifier: workspace:*
+        version: link:../api-schema
+      '@repo/pino-log':
+        specifier: workspace:*
+        version: link:../pino-log
+      '@repo/prisma-database':
+        specifier: workspace:*
+        version: link:../prisma-database
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+
   packages/builtin-tool:
     dependencies:
       '@repo/internal-langchain':
@@ -207,7 +237,7 @@ importers:
     dependencies:
       '@langchain/community':
         specifier: ^1.0.3
-        version: 1.0.3(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.56.1)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(zod@4.1.12))(@ibm-cloud/watsonx-ai@1.7.3)(@langchain/core@1.0.5(openai@6.9.0(ws@8.18.3)(zod@4.1.12)))(duck-duck-scrape@2.2.7)(fast-xml-parser@4.2.5)(ibm-cloud-sdk-core@5.4.4)(ioredis@5.8.2)(jsonwebtoken@9.0.2)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(playwright@1.56.1)(ws@8.18.3)
+        version: 1.0.3(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.56.1)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(zod@4.1.12))(@ibm-cloud/watsonx-ai@1.7.3)(@langchain/core@1.0.5(openai@6.9.0(ws@8.18.3)(zod@4.1.12)))(duck-duck-scrape@2.2.7)(fast-xml-parser@4.5.0)(ibm-cloud-sdk-core@5.4.4)(ioredis@5.8.2)(jsonwebtoken@9.0.2)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(playwright@1.56.1)(ws@8.18.3)
       '@langchain/core':
         specifier: ^1.0.5
         version: 1.0.5(openai@6.9.0(ws@8.18.3)(zod@4.1.12))
@@ -261,6 +291,9 @@ importers:
 
   packages/tencent-cos:
     dependencies:
+      '@repo/api-schema':
+        specifier: workspace:*
+        version: link:../api-schema
       '@repo/pino-log':
         specifier: workspace:*
         version: link:../pino-log
@@ -270,6 +303,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      qcloud-cos-sts:
+        specifier: ^3.1.3
+        version: 3.1.3
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -1656,6 +1692,19 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-visually-hidden@1.2.4':
+    resolution: {integrity: sha512-kaeiyGCe844dkb9AVF+rb4yTyb1LiLN/e3es3nLiRyN4dC8AduBYPMnnNlDjX2VDOcvDEiPnRNMJeWCfsX0txg==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
@@ -1934,6 +1983,10 @@ packages:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
     engines: {node: '>= 0.4'}
 
+  call-bound@1.0.4:
+    resolution: {integrity: sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==}
+    engines: {node: '>= 0.4'}
+
   camelcase@6.3.0:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
@@ -1999,6 +2052,9 @@ packages:
 
   core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
+
+  cos-js-sdk-v5@1.10.1:
+    resolution: {integrity: sha512-a4SRfCY5g6Z35C7OWe9te/S1zk77rVQzfpvZ33gmTdJQzKxbNbEG7Aw/v453XwVMsQB352FIf7KRMm5Ya/wlZQ==}
 
   cos-nodejs-sdk-v5@2.15.4:
     resolution: {integrity: sha512-TP/iYTvKKKhRK89on9SRfSMGEw/9SFAAU8EC1kdT5Fmpx7dAwaCNM2+R2H1TSYoQt+03rwOs8QEfNkX8GOHjHQ==}
@@ -2162,6 +2218,10 @@ packages:
 
   fast-xml-parser@4.2.5:
     resolution: {integrity: sha512-B9/wizE4WngqQftFPmdaMYlXoJlJOYxGQOanC77fq9k8+Z0v5dDSVh+3glErdIROP//s/jgb7ZuxKfB8nVyo0g==}
+    hasBin: true
+
+  fast-xml-parser@4.5.0:
+    resolution: {integrity: sha512-/PlTQCI96+fZMAOLMZK4CWG1ItCbfZ/0jx7UIJFChPNrx7tcEgerUgWbeieCM9MfHInUDyK8DWYZ+YrywDJuTg==}
     hasBin: true
 
   file-type@16.5.4:
@@ -2645,6 +2705,10 @@ packages:
   oauth-sign@0.9.0:
     resolution: {integrity: sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==}
 
+  object-inspect@1.13.4:
+    resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
+    engines: {node: '>= 0.4'}
+
   ohash@2.0.11:
     resolution: {integrity: sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==}
 
@@ -2816,6 +2880,13 @@ packages:
     resolution: {integrity: sha512-KTqnxsgGiQ6ZAzZCVlJH5eOjSnvlyEgx1m8bkRJfOhmGRqfo5KLvmAlACQkrjEtOQ4B7wF9TdSLIs9O90MX9xA==}
     engines: {node: '>=16.0.0'}
 
+  qcloud-cos-sts@3.1.3:
+    resolution: {integrity: sha512-TpPWyQcCg3SefmoWSKKYIGIfxE7CBQlp4pF4NXGlpgpV1cVrPd6YdZKtAICXZ/D8ibEV0TwHca/qKLBZkVBJKQ==}
+
+  qs@6.14.0:
+    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
+    engines: {node: '>=0.6'}
+
   qs@6.5.3:
     resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
     engines: {node: '>=0.6'}
@@ -2963,6 +3034,22 @@ packages:
   sharp@0.34.4:
     resolution: {integrity: sha512-FUH39xp3SBPnxWvd5iib1X8XY7J0K0X7d93sie9CJg2PO8/7gmg89Nve6OjItK53/MlAushNNxteBYfM6DEuoA==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+
+  side-channel-list@1.0.0:
+    resolution: {integrity: sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==}
+    engines: {node: '>= 0.4'}
+
+  side-channel-map@1.0.1:
+    resolution: {integrity: sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA==}
+    engines: {node: '>= 0.4'}
+
+  side-channel-weakmap@1.0.2:
+    resolution: {integrity: sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A==}
+    engines: {node: '>= 0.4'}
+
+  side-channel@1.1.0:
+    resolution: {integrity: sha512-ZX99e6tRweoUXqR+VBrslhda51Nh5MTQwou5tnUDgbtyM0dBgmhEDtWGP/xbKn6hqfPRHujUNwz5fy/wbbhnpw==}
+    engines: {node: '>= 0.4'}
 
   simple-wcswidth@1.1.2:
     resolution: {integrity: sha512-j7piyCjAeTDSjzTSQ7DokZtMNwNlEAyxqSZeCS+CXH7fJ4jx3FuJ/mTW3mE+6JLs4VJBbcll0Kjn+KXI5t21Iw==}
@@ -3593,7 +3680,7 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/community@1.0.3(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.56.1)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(zod@4.1.12))(@ibm-cloud/watsonx-ai@1.7.3)(@langchain/core@1.0.5(openai@6.9.0(ws@8.18.3)(zod@4.1.12)))(duck-duck-scrape@2.2.7)(fast-xml-parser@4.2.5)(ibm-cloud-sdk-core@5.4.4)(ioredis@5.8.2)(jsonwebtoken@9.0.2)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(playwright@1.56.1)(ws@8.18.3)':
+  '@langchain/community@1.0.3(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.56.1)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(zod@4.1.12))(@ibm-cloud/watsonx-ai@1.7.3)(@langchain/core@1.0.5(openai@6.9.0(ws@8.18.3)(zod@4.1.12)))(duck-duck-scrape@2.2.7)(fast-xml-parser@4.5.0)(ibm-cloud-sdk-core@5.4.4)(ioredis@5.8.2)(jsonwebtoken@9.0.2)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(playwright@1.56.1)(ws@8.18.3)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.56.1)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.0(ws@8.18.3)(zod@4.1.12))(zod@4.1.12)
       '@ibm-cloud/watsonx-ai': 1.7.3
@@ -3611,7 +3698,7 @@ snapshots:
     optionalDependencies:
       '@browserbasehq/sdk': 2.6.0
       duck-duck-scrape: 2.2.7
-      fast-xml-parser: 4.2.5
+      fast-xml-parser: 4.5.0
       ioredis: 5.8.2
       jsonwebtoken: 9.0.2
       playwright: 1.56.1
@@ -4201,6 +4288,15 @@ snapshots:
       '@types/react': 19.2.5
       '@types/react-dom': 19.2.3(@types/react@19.2.5)
 
+  '@radix-ui/react-visually-hidden@1.2.4(@types/react-dom@19.2.3(@types/react@19.2.5))(@types/react@19.2.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      '@radix-ui/react-primitive': 2.1.4(@types/react-dom@19.2.3(@types/react@19.2.5))(@types/react@19.2.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+    optionalDependencies:
+      '@types/react': 19.2.5
+      '@types/react-dom': 19.2.3(@types/react@19.2.5)
+
   '@radix-ui/rect@1.1.1': {}
 
   '@simplewebauthn/browser@13.2.2': {}
@@ -4467,6 +4563,11 @@ snapshots:
       es-errors: 1.3.0
       function-bind: 1.1.2
 
+  call-bound@1.0.4:
+    dependencies:
+      call-bind-apply-helpers: 1.0.2
+      get-intrinsic: 1.3.0
+
   camelcase@6.3.0: {}
 
   caniuse-lite@1.0.30001751: {}
@@ -4531,6 +4632,10 @@ snapshots:
       simple-wcswidth: 1.1.2
 
   core-util-is@1.0.2: {}
+
+  cos-js-sdk-v5@1.10.1:
+    dependencies:
+      fast-xml-parser: 4.5.0
 
   cos-nodejs-sdk-v5@2.15.4:
     dependencies:
@@ -4687,6 +4792,10 @@ snapshots:
   fast-safe-stringify@2.1.1: {}
 
   fast-xml-parser@4.2.5:
+    dependencies:
+      strnum: 1.1.2
+
+  fast-xml-parser@4.5.0:
     dependencies:
       strnum: 1.1.2
 
@@ -5135,6 +5244,8 @@ snapshots:
 
   oauth-sign@0.9.0: {}
 
+  object-inspect@1.13.4: {}
+
   ohash@2.0.11: {}
 
   on-exit-leak-free@2.1.2: {}
@@ -5304,6 +5415,17 @@ snapshots:
 
   pvutils@1.1.5: {}
 
+  qcloud-cos-sts@3.1.3:
+    dependencies:
+      axios: 1.13.2(debug@4.4.3)
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
+  qs@6.14.0:
+    dependencies:
+      side-channel: 1.1.0
+
   qs@6.5.3: {}
 
   querystringify@2.2.0: {}
@@ -5461,6 +5583,34 @@ snapshots:
       '@img/sharp-win32-ia32': 0.34.4
       '@img/sharp-win32-x64': 0.34.4
     optional: true
+
+  side-channel-list@1.0.0:
+    dependencies:
+      es-errors: 1.3.0
+      object-inspect: 1.13.4
+
+  side-channel-map@1.0.1:
+    dependencies:
+      call-bound: 1.0.4
+      es-errors: 1.3.0
+      get-intrinsic: 1.3.0
+      object-inspect: 1.13.4
+
+  side-channel-weakmap@1.0.2:
+    dependencies:
+      call-bound: 1.0.4
+      es-errors: 1.3.0
+      get-intrinsic: 1.3.0
+      object-inspect: 1.13.4
+      side-channel-map: 1.0.1
+
+  side-channel@1.1.0:
+    dependencies:
+      es-errors: 1.3.0
+      object-inspect: 1.13.4
+      side-channel-list: 1.0.0
+      side-channel-map: 1.0.1
+      side-channel-weakmap: 1.0.2
 
   simple-wcswidth@1.1.2: {}
 

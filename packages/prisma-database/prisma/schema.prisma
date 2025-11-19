@@ -20,7 +20,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  uploadFiles UploadFile[]
+  uploadFiles      UploadFile[]
+  apiToolProviders ApiToolProvider[]
 
   @@unique([email])
   @@map("user")
@@ -98,4 +99,41 @@ model UploadFile {
 
   @@index([userId])
   @@map("t_upload_file")
+}
+
+model ApiToolProvider {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String   @default("")
+  icon          String   @default("")
+  description   String   @default("")
+  openapiSchema String   @default("") @map("openapi_schema")
+  headers       Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  apiTools ApiTool[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("t_api_tool_provider")
+}
+
+model ApiTool {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  providerId  String          @map("provider_id")
+  provider    ApiToolProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String          @default("")
+  description String          @default("")
+  url         String          @default("")
+  method      String          @default("")
+  parameters  Json            @default("[]")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@unique([providerId, name])
+  @@index([userId])
+  @@map("t_api_tool")
 }

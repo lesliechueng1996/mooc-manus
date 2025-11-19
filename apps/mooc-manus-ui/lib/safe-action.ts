@@ -59,16 +59,19 @@ export const authActionClient = actionClient.use(async ({ next }) => {
 
   // const token = sessionToken.split('.')[0];
 
-  // const sessionRecord = await db
-  //   .select()
-  //   .from(session)
-  //   .where(eq(session.token, token));
+  // const sessionRecord = await prisma.session.findUnique({
+  //   where: {
+  //     token,
+  //   },
+  // });
 
-  // log.debug('sessionRecord: %o', sessionRecord);
-  // if (!sessionRecord || sessionRecord.length === 0) {
+  // log.debug('sessionRecord: %o', { sessionRecord });
+  // if (!sessionRecord) {
   //   log.error('Unauthorized: %s', sessionToken);
   //   redirect('/login');
   // }
+
+  // return next({ ctx: { userId: sessionRecord.userId } });
 
   const session = await auth.api.getSession({
     headers: await headers(),
