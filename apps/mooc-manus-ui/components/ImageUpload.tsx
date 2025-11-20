@@ -27,35 +27,19 @@ import { ALLOWED_IMAGE_EXTENSIONS, ALLOWED_IMAGE_SIZE } from '@/lib/constant';
 import { log } from '@/lib/logger';
 import { cn, getActionErrorMsg } from '@/lib/utils';
 
-/**
- * ImageUpload 组件的引用类型定义
- * 提供对外暴露的 uploadImage 方法
- */
 export type ImageUploadRef = {
   uploadImage: () => Promise<string | null>;
 };
 
-/**
- * ImageUpload 组件的属性类型定义
- */
 type Props = {
-  /** 输入框的唯一标识符 */
   id?: string;
-  /** 图片的替代文本 */
   alt: string;
-  /** 初始图片 URL */
   imageUrl?: string;
-  /** 允许的图片扩展名列表 */
   allowedExtensions?: string[];
-  /** 自定义 CSS 类名 */
   className?: string;
-  /** 上传按钮的标签文本 */
   label?: string;
-  /** 组件引用 */
   ref?: RefObject<ImageUploadRef | null>;
-  /** 是否必填 */
   required?: boolean;
-  /** 自动上传回调函数 */
   onAutoUpload?: (url: string | null) => Promise<void>;
 };
 
@@ -65,7 +49,7 @@ const ImageUpload = ({
   imageUrl,
   className,
   allowedExtensions = ALLOWED_IMAGE_EXTENSIONS,
-  label = '上传图片',
+  label = 'Upload Image',
   ref,
   required = false,
   onAutoUpload,
@@ -80,10 +64,6 @@ const ImageUpload = ({
     };
   });
 
-  /**
-   * 处理图片变更事件
-   * 创建本地预览并可选地触发自动上传
-   */
   const handleImageChange: ChangeEventHandler<HTMLInputElement> = async () => {
     const file = inputRef.current?.files?.[0];
     if (!file) {
@@ -102,10 +82,6 @@ const ImageUpload = ({
     }
   };
 
-  /**
-   * 清除已选择的图片
-   * 释放 blob URL 并重置输入框
-   */
   const handleClear = () => {
     if (previewUrl?.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
@@ -116,14 +92,10 @@ const ImageUpload = ({
     }
   };
 
-  /**
-   * 上传图片到腾讯云 COS
-   * @returns {Promise<string | null>} 上传成功返回图片 URL，失败返回 null
-   */
   const uploadImage = async () => {
     const file = inputRef.current?.files?.[0];
     if (!file && !imageUrl && required) {
-      toast.error('请上传图片');
+      toast.error('Please upload an image');
       return null;
     }
 
@@ -140,7 +112,7 @@ const ImageUpload = ({
       });
 
       if (!res?.data) {
-        toast.error(getActionErrorMsg(res, '上传失败'));
+        toast.error(getActionErrorMsg(res, 'Upload failed'));
         return null;
       }
 
@@ -164,12 +136,12 @@ const ImageUpload = ({
           },
           (err, data) => {
             if (err) {
-              toast.error('上传失败');
+              toast.error('Upload failed');
               resolve(null);
               return;
             }
 
-            toast.success('上传成功');
+            toast.success('Upload successful');
             const url = `${bucket.schema}://${data.Location}`;
             resolve(url);
           },
@@ -178,8 +150,8 @@ const ImageUpload = ({
 
       return await promise;
     } catch (error) {
-      log.error('图片上传失败: %o', { error });
-      toast.error('上传失败');
+      log.error('Image upload failed: %o', { error });
+      toast.error('Upload failed');
       return null;
     } finally {
       if (inputRef.current) {
@@ -204,7 +176,7 @@ const ImageUpload = ({
           {isPending ? (
             <div className="absolute left-0 top-0 w-full h-full bg-gray-500/80">
               <div className="flex justify-center items-center w-full h-full">
-                <p className="text-white text-xs">上传中...</p>
+                <p className="text-white text-xs">Uploading...</p>
               </div>
             </div>
           ) : (
@@ -216,8 +188,8 @@ const ImageUpload = ({
                 <DialogContent className="w-fit border-none">
                   <VisuallyHidden asChild>
                     <DialogHeader>
-                      <DialogTitle>预览图片</DialogTitle>
-                      <DialogDescription>预览{alt}</DialogDescription>
+                      <DialogTitle>Preview Image</DialogTitle>
+                      <DialogDescription>Preview {alt}</DialogDescription>
                     </DialogHeader>
                   </VisuallyHidden>
                   <Image
@@ -248,7 +220,7 @@ const ImageUpload = ({
         >
           <div className="flex flex-col items-center gap-0.5">
             <Plus size={16} className="text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
           </div>
         </button>
       )}

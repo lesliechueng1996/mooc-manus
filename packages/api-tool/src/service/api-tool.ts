@@ -1,7 +1,17 @@
-import { BadRequestException } from '@repo/api-schema';
-import { prisma } from '@repo/prisma-database';
-import type { CreateApiToolReq } from '../schema/api-tool';
-import type { OpenapiSchema } from '../schema/openapi';
+import {
+  BadRequestException,
+  calculatePagination,
+  NotFoundException,
+  paginationResult,
+  type SearchPageReq,
+} from '@repo/api-schema';
+import { type Prisma, prisma } from '@repo/prisma-database';
+import type {
+  CreateApiToolReq,
+  GetApiToolListRes,
+  UpdateApiToolReq,
+} from '../schema/api-tool';
+import type { ApiToolParameter, OpenapiSchema } from '../schema/openapi';
 import { validateOpenapiSchema } from './openapi-schema';
 
 const formatApiTools = (openapi: OpenapiSchema, userId: string) => {
@@ -66,4 +76,156 @@ export const createApiTool = async (userId: string, data: CreateApiToolReq) => {
   });
 
   return provider.id;
+};
+
+const formatApiToolInputs = (parameters: ApiToolParameter) =>
+  parameters.map((param) => ({
+    type: param.type,
+    name: param.name,
+    description: param.description,
+    required: param.required,
+  }));
+
+export const listApiToolsByPage = async (
+  userId: string,
+  pageReq: SearchPageReq,
+) => {
+  const { offset, limit } = calculatePagination(pageReq);
+  const where: Prisma.ApiToolProviderWhereInput = {
+    userId,
+  };
+  if (pageReq.searchWord) {
+    where.name = {
+      contains: pageReq.searchWord,
+      mode: 'insensitive',
+    };
+  }
+
+  const listQuery = prisma.apiToolProvider.findMany({
+    include: {
+      apiTools: true,
+    },
+    where,
+    orderBy: {
+      createdAt: 'desc',
+    },
+    skip: offset,
+    take: limit,
+  });
+
+  const countQuery = prisma.apiToolProvider.count({
+    where,
+  });
+
+  const [list, total] = await Promise.all([listQuery, countQuery]);
+
+  const formattedList: GetApiToolListRes[] = list.map((item) => ({
+    id: item.id,
+    name: item.name,
+    icon: item.icon,
+    description: item.description,
+    headers: item.headers as Record<string, string>[],
+    createdAt: item.createdAt.getTime(),
+    tools: item.apiTools.map((tool) => ({
+      id: tool.id,
+      name: tool.name,
+      description: tool.description,
+      inputs: formatApiToolInputs(tool.parameters as ApiToolParameter),
+    })),
+  }));
+
+  return paginationResult(formattedList, total, pageReq);
+};
+
+export const getApiToolProvider = async (
+  userId: string,
+  providerId: string,
+) => {
+  const apiToolProviderRecord = await prisma.apiToolProvider.findUnique({
+    where: {
+      id: providerId,
+      userId,
+    },
+  });
+
+  if (!apiToolProviderRecord) {
+    throw new NotFoundException('API tool provider not found');
+  }
+
+  return {
+    id: apiToolProviderRecord.id,
+    name: apiToolProviderRecord.name,
+    icon: apiToolProviderRecord.icon,
+    description: apiToolProviderRecord.description,
+    openapiSchema: apiToolProviderRecord.openapiSchema,
+    headers: apiToolProviderRecord.headers as Array<{
+      key: string;
+      value: string;
+    }>,
+    createdAt: apiToolProviderRecord.createdAt.getTime(),
+  };
+};
+
+export const updateApiTool = async (
+  userId: string,
+  providerId: string,
+  data: UpdateApiToolReq,
+) => {
+  const { name, icon, openapiSchema, headers } = data;
+  const validatedOpenapiData = validateOpenapiSchema(openapiSchema);
+
+  const countUserSameNameApiToolProvider = await prisma.apiToolProvider.count({
+    where: {
+      userId,
+      name,
+      id: {
+        not: providerId,
+      },
+    },
+  });
+  if (countUserSameNameApiToolProvider > 0) {
+    throw new BadRequestException('Tool with the same name already exists');
+  }
+
+  const tools = formatApiTools(validatedOpenapiData, userId);
+
+  await prisma.$transaction([
+    prisma.apiTool.deleteMany({
+      where: {
+        providerId,
+        userId,
+      },
+    }),
+    prisma.apiToolProvider.update({
+      data: {
+        name,
+        icon,
+        description: validatedOpenapiData.description,
+        openapiSchema: JSON.stringify(validatedOpenapiData),
+        headers,
+      },
+      where: {
+        id: providerId,
+        userId,
+      },
+    }),
+    prisma.apiTool.createMany({
+      data: tools.map((tool) => ({
+        ...tool,
+        providerId,
+      })),
+    }),
+  ]);
+
+  return providerId;
+};
+
+export const deleteApiTool = async (userId: string, providerId: string) => {
+  await prisma.apiToolProvider.delete({
+    where: {
+      userId,
+      id: providerId,
+    },
+  });
+  return providerId;
 };

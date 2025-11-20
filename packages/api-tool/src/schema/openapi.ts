@@ -25,6 +25,8 @@ export const parameterSchema = z.array(
   }),
 );
 
+export type ApiToolParameter = z.infer<typeof parameterSchema>;
+
 export const openapiSchema = z.object({
   server: z.url(),
   description: z.string().trim().nonempty(),

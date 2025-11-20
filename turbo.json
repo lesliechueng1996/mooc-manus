@@ -9,10 +9,12 @@
       "env": ["DATABASE_URL"]
     },
     "format": {
-      "dependsOn": ["^format"]
+      "dependsOn": ["^format"],
+      "cache": false
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "cache": false
     },
     "dev": {
       "dependsOn": ["^db:generate"],
