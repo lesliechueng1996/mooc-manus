@@ -14,7 +14,7 @@ const BaseCard = ({ top, middle, bottom, className, onClick }: Props) => {
   return (
     <Card
       className={cn(
-        'w-96 h-48 flex flex-col p-4',
+        'w-96 h-48 flex flex-col p-4 hover:shadow-lg transition-shadow hover:border-primary',
         className,
         onClick && 'cursor-pointer',
       )}
