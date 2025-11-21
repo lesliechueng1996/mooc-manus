@@ -4,6 +4,7 @@ import type { ComponentProps } from 'react';
 import BaseCard from '@/components/BaseCard';
 import TimeCardFooter from '@/components/TimeCardFooter';
 import DatasetCardHeader from './DatasetCardHeader';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   description: string;
@@ -19,6 +20,13 @@ const DatasetCard = ({
   authorName,
   ...headerProps
 }: Props) => {
+  const router = useRouter();
+  const { datasetId } = headerProps;
+
+  const handleCardClick = () => {
+    router.push(`/space/datasets/${datasetId}/documents`);
+  };
+
   const header = <DatasetCardHeader {...headerProps} />;
 
   const footer = (
@@ -30,7 +38,14 @@ const DatasetCard = ({
     />
   );
 
-  return <BaseCard top={header} middle={description} bottom={footer} />;
+  return (
+    <BaseCard
+      top={header}
+      middle={description}
+      bottom={footer}
+      onClick={handleCardClick}
+    />
+  );
 };
 
 export default DatasetCard;

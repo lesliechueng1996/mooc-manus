@@ -1,6 +1,6 @@
 import { User } from 'lucide-react';
 import type { ReactNode } from 'react';
-import TitleHeader from '../_components/TitleHeader';
+import TitleHeader from '../../_components/TitleHeader';
 import SpaceHeader from './_components/SpaceHeader';
 
 type Props = {

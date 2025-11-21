@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { parseAsString, useQueryState } from 'nuqs';
-import FilterHeader, { type Keyword } from '../../_components/FilterHeader';
+import FilterHeader, { type Keyword } from '../../../_components/FilterHeader';
 
 type Props = {
   className?: string;
