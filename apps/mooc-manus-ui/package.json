@@ -24,6 +24,7 @@
     "@repo/api-schema": "workspace:*",
     "@repo/api-tool": "workspace:*",
     "@repo/builtin-tool": "workspace:*",
+    "@repo/dataset": "workspace:*",
     "@repo/pino-log": "workspace:*",
     "@repo/prisma-database": "workspace:*",
     "@repo/tencent-cos": "workspace:*",

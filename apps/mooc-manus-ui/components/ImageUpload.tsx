@@ -28,7 +28,7 @@ import { log } from '@/lib/logger';
 import { cn, getActionErrorMsg } from '@/lib/utils';
 
 export type ImageUploadRef = {
-  uploadImage: () => Promise<string | null>;
+  uploadImage: (defaultImageUrl?: string) => Promise<string | null>;
 };
 
 type Props = {
@@ -92,15 +92,15 @@ const ImageUpload = ({
     }
   };
 
-  const uploadImage = async () => {
+  const uploadImage = async (defaultImageUrl?: string) => {
     const file = inputRef.current?.files?.[0];
-    if (!file && !imageUrl && required) {
+    if (!file && !imageUrl && required && !defaultImageUrl) {
       toast.error('Please upload an image');
       return null;
     }
 
     if (!file) {
-      return imageUrl || null;
+      return defaultImageUrl || imageUrl || null;
     }
 
     try {

@@ -92,15 +92,20 @@ const ToolForm = ({ defaultValues, onSubmit, onDelete, onCancel }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const uploadImageRef = useRef<ImageUploadRef>(null);
+  const iconUrlRef = useRef<string>(defaultValues?.icon || '');
 
   const handleSubmit = async (values: ToolFormData) => {
     try {
       setIsLoading(true);
-      const iconUrl = await uploadImageRef.current?.uploadImage();
+      const iconUrl = await uploadImageRef.current?.uploadImage(
+        iconUrlRef.current,
+      );
 
       if (!iconUrl) {
         return;
       }
+
+      iconUrlRef.current = iconUrl;
 
       await onSubmit({
         ...values,

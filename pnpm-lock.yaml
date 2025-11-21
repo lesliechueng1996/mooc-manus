@@ -105,6 +105,9 @@ importers:
       '@repo/builtin-tool':
         specifier: workspace:*
         version: link:../../packages/builtin-tool
+      '@repo/dataset':
+        specifier: workspace:*
+        version: link:../../packages/dataset
       '@repo/pino-log':
         specifier: workspace:*
         version: link:../../packages/pino-log
@@ -235,6 +238,15 @@ importers:
       zod:
         specifier: ^4.1.12
         version: 4.1.12
+
+  packages/dataset:
+    dependencies:
+      '@repo/api-schema':
+        specifier: workspace:*
+        version: link:../api-schema
+      '@repo/prisma-database':
+        specifier: workspace:*
+        version: link:../prisma-database
 
   packages/internal-langchain:
     dependencies:
