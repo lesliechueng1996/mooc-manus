@@ -213,3 +213,57 @@ export const updateDataset = async (
     },
   });
 };
+
+export const getDatasetById = async (userId: string, datasetId: string) => {
+  const dataset = await getDatasetOrThrow(datasetId, userId);
+  const documentQuery = prisma.document.groupBy({
+    by: ['datasetId'],
+    where: {
+      datasetId,
+    },
+    _count: {
+      id: true,
+    },
+    _sum: {
+      characterCount: true,
+    },
+  });
+  const hitCountQuery = prisma.segment.groupBy({
+    by: ['datasetId'],
+    where: {
+      datasetId,
+    },
+    _sum: {
+      hitCount: true,
+    },
+  });
+
+  // TODO 查询知识库关联的应用数量
+  // const relatedAppCountQuery = db
+  //   .select({
+  //     appCount: sql<number>`cast(count(${appDatasetJoin.id}) as int)`,
+  //   })
+  //   .from(appDatasetJoin)
+  //   .where(eq(appDatasetJoin.datasetId, datasetId));
+
+  const [documentResult, hitCount] = await Promise.all([
+    documentQuery,
+    hitCountQuery,
+    // relatedAppCountQuery,
+  ]);
+  const documentCount = documentResult[0]?._count.id ?? 0;
+  const characterCount = documentResult[0]?._sum.characterCount ?? 0;
+
+  return {
+    id: dataset.id,
+    name: dataset.name,
+    icon: dataset.icon,
+    description: dataset.description,
+    documentCount,
+    hitCount: hitCount[0]?._sum.hitCount ?? 0,
+    relatedAppCount: 0,
+    characterCount,
+    createdAt: dataset.createdAt.getTime(),
+    updatedAt: dataset.updatedAt.getTime(),
+  };
+};

@@ -5,7 +5,7 @@ type Props = {
 };
 
 const DocLayout = ({ children }: Props) => {
-  return <div className="p-3 h-full">{children}</div>;
+  return <div className="px-3 h-full">{children}</div>;
 };
 
 export default DocLayout;
