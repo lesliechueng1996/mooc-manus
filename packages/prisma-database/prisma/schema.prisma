@@ -77,11 +77,12 @@ model Verification {
 }
 
 model AppConfig {
-  id        String   @id @default(cuid())
-  userId    String   @unique @map("user_id")
-  llmConfig Json     @map("llm_config")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  llmConfig   Json     @default("{}") @map("llm_config")
+  agentConfig Json     @default("{}") @map("agent_config")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("t_app_config")
 }

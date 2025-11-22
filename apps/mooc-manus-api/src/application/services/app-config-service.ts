@@ -1,4 +1,4 @@
-import type { LlmConfig } from '@/domain/models/app-config';
+import type { AgentConfig, LlmConfig } from '@/domain/models/app-config';
 import {
   loadByUserId,
   saveAppConfig,
@@ -20,4 +20,19 @@ export const updateLlmConfig = async (userId: string, llmConfig: LlmConfig) => {
   await saveAppConfig(userId, appConfig);
 
   return appConfig.llmConfig;
+};
+
+export const getAgentConfig = async (userId: string) => {
+  const appConfig = await loadAppConfig(userId);
+  return appConfig.agentConfig;
+};
+
+export const updateAgentConfig = async (
+  userId: string,
+  agentConfig: AgentConfig,
+) => {
+  const appConfig = await loadAppConfig(userId);
+  appConfig.agentConfig = agentConfig;
+  await saveAppConfig(userId, appConfig);
+  return appConfig.agentConfig;
 };
