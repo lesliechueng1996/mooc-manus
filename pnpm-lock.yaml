@@ -44,6 +44,9 @@ importers:
       hono:
         specifier: ^4.10.4
         version: 4.10.4
+      jsonrepair:
+        specifier: ^3.13.1
+        version: 3.13.1
       openai:
         specifier: ^6.8.1
         version: 6.8.1(ws@8.18.3)(zod@4.1.12)
@@ -2435,6 +2438,10 @@ packages:
   jsonpointer@5.0.1:
     resolution: {integrity: sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==}
     engines: {node: '>=0.10.0'}
+
+  jsonrepair@3.13.1:
+    resolution: {integrity: sha512-WJeiE0jGfxYmtLwBTEk8+y/mYcaleyLXWaqp5bJu0/ZTSeG0KQq/wWQ8pmnkKenEdN6pdnn6QtcoSUkbqDHWNw==}
+    hasBin: true
 
   jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -5030,6 +5037,8 @@ snapshots:
   json-stringify-safe@5.0.1: {}
 
   jsonpointer@5.0.1: {}
+
+  jsonrepair@3.13.1: {}
 
   jsonwebtoken@9.0.2:
     dependencies:
