@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { File } from './file';
 import type { Plan, Step } from './plan';
 import { createPlan, createStep } from './plan';
+import type { ToolResult } from './tool-result';
 
 enum PlanEventStatus {
   CREATED = 'created',
@@ -87,8 +89,7 @@ type MessageEvent = BaseEvent & {
   type: 'message';
   role: 'user' | 'assistant';
   message: string;
-  // TODO: Implement this
-  attachments: Array<unknown>;
+  attachments: Array<File>;
 };
 
 export const createMessageEvent = (overrides?: Partial<MessageEvent>) => {
@@ -104,15 +105,46 @@ export const createMessageEvent = (overrides?: Partial<MessageEvent>) => {
   return event;
 };
 
-type ToolEvent = BaseEvent & {
-  type: 'tool';
-  // TODO: Implement this
+type BrowserToolContent = {
+  screenshot: string;
 };
 
-export const createToolEvent = (overrides?: Partial<ToolEvent>) => {
+type MCPToolContent = {
+  result: unknown;
+};
+
+// TODO: Add more tool content types
+type ToolContent = BrowserToolContent | MCPToolContent;
+
+enum ToolEventStatus {
+  CALLING = 'calling',
+  CALLED = 'called',
+}
+
+type ToolEvent = BaseEvent & {
+  type: 'tool';
+  toolCallId: string;
+  toolName: string;
+  toolContent: ToolContent | null;
+  functionName: string;
+  functionArguments: Record<string, unknown>;
+  functionResult: ToolResult<unknown> | null;
+  status: ToolEventStatus;
+};
+
+export const createToolEvent = (
+  overrides: Partial<ToolEvent> &
+    Pick<
+      ToolEvent,
+      'toolCallId' | 'toolName' | 'functionName' | 'functionArguments'
+    >,
+) => {
   const event: ToolEvent = {
     ...createBaseEvent(),
     type: 'tool',
+    toolContent: null,
+    functionResult: null,
+    status: ToolEventStatus.CALLING,
     ...overrides,
   };
 
