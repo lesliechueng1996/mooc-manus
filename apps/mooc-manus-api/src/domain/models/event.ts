@@ -60,7 +60,7 @@ export const createTitleEvent = (overrides?: Partial<TitleEvent>) => {
   return event;
 };
 
-enum StepEventStatus {
+export enum StepEventStatus {
   STARTED = 'started',
   COMPLETED = 'completed',
   FAILED = 'failed',

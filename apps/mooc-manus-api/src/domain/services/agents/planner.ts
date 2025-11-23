@@ -19,6 +19,7 @@ export class PlannerAgent extends BaseAgent {
   protected readonly name: string = 'planner';
   protected readonly systemPrompt: string = plannerAgentSystemPrompt;
   protected readonly format: string = 'json_object';
+  protected readonly toolChoice: string = 'none';
 
   async *createPlan(message: Message): AsyncGenerator<Event> {
     const query = formatCreatePlanPrompt(

@@ -38,6 +38,46 @@ export class Step {
     return this.props;
   }
 
+  get description(): string {
+    return this.props.description;
+  }
+
+  set status(status: ExecutionStatus) {
+    this.props.status = status;
+  }
+
+  get success() {
+    return this.props.success;
+  }
+
+  set success(success: boolean) {
+    this.props.success = success;
+  }
+
+  get result() {
+    return this.props.result;
+  }
+
+  set result(result: string | null) {
+    this.props.result = result;
+  }
+
+  get attachments() {
+    return this.props.attachments;
+  }
+
+  set attachments(attachments: string[]) {
+    this.props.attachments = attachments;
+  }
+
+  get error() {
+    return this.props.error;
+  }
+
+  set error(error: string | null) {
+    this.props.error = error;
+  }
+
   static schema = stepSchema.transform((data) => new Step(data));
 }
 
@@ -74,6 +114,10 @@ export class Plan {
 
   set steps(steps: Step[]) {
     this.props.steps = steps;
+  }
+
+  get language(): string {
+    return this.props.language;
   }
 
   clone(): Plan {
