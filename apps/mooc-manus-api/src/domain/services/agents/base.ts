@@ -12,6 +12,7 @@ import type { Memory } from '@/domain/models/memory';
 import type { ToolResult } from '@/domain/models/tool-result';
 import { getContextLogger } from '@/infrasturcture/logging';
 import type { BaseTool } from '../tools/base';
+import { Message } from '@/domain/models/message';
 
 type ToolCall = {
   id: string;
@@ -250,9 +251,38 @@ export const createAgent = (
     agent.memory.compact();
   };
 
+  const rollBack = (message: Message) => {
+    const lastMessage = agent.memory.getLastMessage() as Record<
+      string,
+      unknown
+    >;
+    if (
+      !lastMessage ||
+      !lastMessage.tool_calls ||
+      (Array.isArray(lastMessage.tool_calls) &&
+        lastMessage.tool_calls.length === 0)
+    ) {
+      return;
+    }
+    const toolCall = (lastMessage.tool_calls as Array<ToolCall>)[0];
+    const functionName = toolCall.function?.name;
+    const toolCallId = toolCall.id;
+    if (functionName === 'message_ask_user') {
+      agent.memory.addMessage({
+        role: 'tool',
+        tool_call_id: toolCallId,
+        function_name: functionName,
+        content: JSON.stringify(message),
+      });
+    } else {
+      agent.memory.rollBack();
+    }
+  };
+
   return {
     invoke,
     getMemory,
     compactMemory,
+    rollBack,
   };
 };
