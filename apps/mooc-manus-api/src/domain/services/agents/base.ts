@@ -1,3 +1,4 @@
+import type { Logger } from '@repo/pino-log';
 import { v4 as uuidv4 } from 'uuid';
 import type { ParseJson } from '@/domain/external/json-parser';
 import type { LlmClient } from '@/domain/external/llm';
@@ -14,7 +15,6 @@ import type { Message } from '@/domain/models/message';
 import type { ToolResult } from '@/domain/models/tool-result';
 import { getContextLogger } from '@/infrasturcture/logging';
 import type { ToolCollection } from '../tools/base';
-import type { Logger } from '@repo/pino-log';
 
 type ToolCall = {
   id: string;

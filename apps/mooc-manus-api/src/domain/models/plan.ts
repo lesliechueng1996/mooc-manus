@@ -9,7 +9,7 @@ export enum ExecutionStatus {
 }
 
 export const stepSchema = z.object({
-  id: z.uuid().default(uuidv4),
+  id: z.string().default(uuidv4),
   description: z.string().default(''),
   status: z.enum(ExecutionStatus).default(ExecutionStatus.PENDING),
   result: z.string().nullable().default(null),
@@ -42,7 +42,7 @@ export class Step {
 }
 
 export const planSchema = z.object({
-  id: z.uuid().default(uuidv4),
+  id: z.string().default(uuidv4),
   title: z.string().default(''),
   goal: z.string().default(''),
   language: z.string().default(''),

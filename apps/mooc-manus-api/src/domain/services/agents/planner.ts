@@ -1,17 +1,17 @@
-import { systemPrompt } from '../prompts/system';
+import {
+  createPlanEvent,
+  type Event,
+  PlanEventStatus,
+} from '@/domain/models/event';
+import type { Message } from '@/domain/models/message';
+import { Plan, type Step } from '@/domain/models/plan';
 import {
   formatCreatePlanPrompt,
   formatUpdatePlanPrompt,
   plannerSystemPrompt,
 } from '../prompts/planner';
+import { systemPrompt } from '../prompts/system';
 import { BaseAgent } from './base';
-import type { Message } from '@/domain/models/message';
-import {
-  createPlanEvent,
-  PlanEventStatus,
-  type Event,
-} from '@/domain/models/event';
-import { Plan, type Step } from '@/domain/models/plan';
 
 const plannerAgentSystemPrompt = systemPrompt + plannerSystemPrompt;
 
