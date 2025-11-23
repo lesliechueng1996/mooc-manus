@@ -30,6 +30,14 @@ export class Step {
     );
   }
 
+  clone(): Step {
+    return Step.schema.parse(this.toJSON());
+  }
+
+  toJSON() {
+    return this.props;
+  }
+
   static schema = stepSchema.transform((data) => new Step(data));
 }
 
@@ -58,6 +66,25 @@ export class Plan {
 
   getNextStep(): Step | undefined {
     return this.props.steps.find((step) => !step.isDone());
+  }
+
+  get steps(): Step[] {
+    return this.props.steps;
+  }
+
+  set steps(steps: Step[]) {
+    this.props.steps = steps;
+  }
+
+  clone(): Plan {
+    return Plan.schema.parse(this.toJSON());
+  }
+
+  toJSON() {
+    return {
+      ...this.props,
+      steps: this.props.steps.map((step) => step.toJSON()),
+    };
   }
 
   static schema = planSchema.transform((data) => new Plan(data));

@@ -1,6 +1,7 @@
 import { systemPrompt } from '../prompts/system';
 import {
   formatCreatePlanPrompt,
+  formatUpdatePlanPrompt,
   plannerSystemPrompt,
 } from '../prompts/planner';
 import { BaseAgent } from './base';
@@ -10,7 +11,7 @@ import {
   PlanEventStatus,
   type Event,
 } from '@/domain/models/event';
-import { Plan, Step } from '@/domain/models/plan';
+import { Plan, type Step } from '@/domain/models/plan';
 
 const plannerAgentSystemPrompt = systemPrompt + plannerSystemPrompt;
 
@@ -45,5 +46,42 @@ export class PlannerAgent extends BaseAgent {
     }
   }
 
-  // async *updatePlan(plan: Plan, step: Step): AsyncGenerator<Event> {}
+  async *updatePlan(plan: Plan, step: Step): AsyncGenerator<Event> {
+    const query = formatUpdatePlanPrompt(
+      JSON.stringify(plan),
+      JSON.stringify(step),
+    );
+
+    for await (const event of this.invoke(query)) {
+      if (event.type === 'message') {
+        this.logger.info(
+          { message: event.message },
+          'Planner agent updated plan',
+        );
+
+        const parsedJson = this.parseJson(event.message);
+        const updatePlan = Plan.schema.parse(parsedJson);
+
+        const newSteps = updatePlan.steps.map((step) => step.clone());
+
+        const firstUnfinishedIndex = plan.steps.findIndex(
+          (step) => !step.isDone(),
+        );
+
+        if (firstUnfinishedIndex >= 0) {
+          const updatedSteps = plan.steps
+            .slice(0, firstUnfinishedIndex)
+            .concat(newSteps);
+          plan.steps = updatedSteps;
+        }
+
+        yield createPlanEvent({
+          plan,
+          status: PlanEventStatus.UPDATED,
+        });
+      } else {
+        yield event;
+      }
+    }
+  }
 }
