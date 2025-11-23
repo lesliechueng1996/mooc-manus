@@ -12,7 +12,7 @@ import type { Memory } from '@/domain/models/memory';
 import type { ToolResult } from '@/domain/models/tool-result';
 import { getContextLogger } from '@/infrasturcture/logging';
 import type { BaseTool } from '../tools/base';
-import { Message } from '@/domain/models/message';
+import type { Message } from '@/domain/models/message';
 
 type ToolCall = {
   id: string;
