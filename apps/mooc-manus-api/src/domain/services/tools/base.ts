@@ -52,9 +52,11 @@ export const createTool = <
   return toolFunc;
 };
 
-const tools: Array<
-  ToolFunction<(...args: unknown[]) => Promise<ToolResult<unknown>>>
-> = [];
+export type BaseTool = ToolFunction<
+  (...args: unknown[]) => Promise<ToolResult<unknown>>
+>;
+
+const tools: Array<BaseTool> = [];
 
 export const registerTool = <
   T extends (...args: unknown[]) => Promise<ToolResult<unknown>>,

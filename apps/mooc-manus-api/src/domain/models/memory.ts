@@ -1,17 +1,23 @@
 import { getContextLogger } from '@/infrasturcture/logging';
 
-type Message = {
-  role: string;
-  content: string;
-} & {
+type ToolMessage = {
   role: 'tool';
   functionName: string;
-} & Record<string, unknown>;
+  content: string;
+};
+
+type Message =
+  | {
+      role: string;
+      content: string;
+    }
+  | ToolMessage
+  | Record<string, unknown>;
 
 // TODO: Implement this
 const compactFunctionNames = [''];
 
-export const createMemory = async () => {
+export const createMemory = () => {
   const logger = getContextLogger();
   const messages: Array<Message> = [];
 
@@ -41,11 +47,12 @@ export const createMemory = async () => {
   const compact = () => {
     for (const message of messages) {
       if (getMessageRole(message) === 'tool') {
-        if (compactFunctionNames.includes(message.functionName)) {
+        const toolMessage = message as ToolMessage;
+        if (compactFunctionNames.includes(toolMessage.functionName)) {
           // TODO: Implement this
-          message.content = '(removed)';
+          toolMessage.content = '(removed)';
           logger.info(
-            `Removed tool call message, function name: ${message.functionName}`,
+            `Removed tool call message, function name: ${toolMessage.functionName}`,
           );
         }
       }
@@ -66,6 +73,8 @@ export const createMemory = async () => {
     isEmpty,
   };
 };
+
+export type Memory = ReturnType<typeof createMemory>;
 
 export const getMessageRole = (message: Record<string, unknown>) => {
   return message.role as string;

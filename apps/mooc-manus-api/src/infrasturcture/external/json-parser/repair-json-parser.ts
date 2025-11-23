@@ -2,7 +2,7 @@ import { jsonrepair } from 'jsonrepair';
 import type { ParseJson } from '@/domain/external/json-parser';
 import { getContextLogger } from '@/infrasturcture/logging';
 
-export const repairParseJson: ParseJson = async (json, defaultValue) => {
+export const repairParseJson: ParseJson = (json, defaultValue) => {
   const logger = getContextLogger();
   logger.info(`Repairing JSON: ${json}`);
   if (!json || json.trim() === '') {

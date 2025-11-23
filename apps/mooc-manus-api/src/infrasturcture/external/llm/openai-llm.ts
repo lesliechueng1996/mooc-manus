@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI, { type ClientOptions } from 'openai';
 import type { ChatCompletion } from 'openai/resources';
 import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
 import { InternalServerErrorException } from '@/application/error/exception';
@@ -6,12 +6,16 @@ import type { LlmClient } from '@/domain/external/llm';
 import type { LlmConfig } from '@/domain/models/app-config';
 import { getContextLogger } from '@/infrasturcture/logging/index';
 
-export const createClient = (llmConfig: LlmConfig): LlmClient => {
+export const createClient = (
+  llmConfig: LlmConfig,
+  openaiConfig: Partial<ClientOptions> = {},
+): LlmClient => {
   const logger = getContextLogger();
 
   const client = new OpenAI({
     baseURL: llmConfig.baseUrl,
     apiKey: llmConfig.apiKey,
+    ...openaiConfig,
   });
 
   const { modelName, temperature, maxTokens } = llmConfig;

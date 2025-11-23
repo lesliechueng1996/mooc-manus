@@ -116,7 +116,7 @@ type MCPToolContent = {
 // TODO: Add more tool content types
 type ToolContent = BrowserToolContent | MCPToolContent;
 
-enum ToolEventStatus {
+export enum ToolEventStatus {
   CALLING = 'calling',
   CALLED = 'called',
 }
