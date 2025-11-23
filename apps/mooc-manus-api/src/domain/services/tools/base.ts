@@ -52,25 +52,9 @@ export const createTool = <
   return toolFunc;
 };
 
-export type BaseTool = ToolFunction<
+export type Tool = ToolFunction<
   (...args: unknown[]) => Promise<ToolResult<unknown>>
 >;
-
-const tools: Array<BaseTool> = [];
-
-export const registerTool = <
-  T extends (...args: unknown[]) => Promise<ToolResult<unknown>>,
->(
-  tool: ToolFunction<T>,
-) => {
-  tools.push(tool);
-};
-
-export const hasTool = (toolName: string) => {
-  return tools.some((tool) => tool._toolName === toolName);
-};
-
-export const getTools = () => tools;
 
 const filterToolParameters = (
   func: ToolFunction<(...args: unknown[]) => Promise<ToolResult<unknown>>>,
@@ -87,16 +71,45 @@ const filterToolParameters = (
   return filteredParameters;
 };
 
-export const invokeTool = async (
-  toolName: string,
-  parameters: Record<string, unknown>,
-): Promise<ToolResult<unknown> | null> => {
-  const tool = tools.find((tool) => tool._toolName === toolName);
-  if (!tool) {
-    throw new Error(`Tool ${toolName} not found`);
-  }
+export const createToolCollection = (name: string) => {
+  const tools: Array<Tool> = [];
+  const collectionName = name;
 
-  const filteredParameters = filterToolParameters(tool, parameters);
-  const result = await tool(filteredParameters);
-  return result;
+  const registerTool = <
+    T extends (...args: unknown[]) => Promise<ToolResult<unknown>>,
+  >(
+    tool: ToolFunction<T>,
+  ) => {
+    tools.push(tool);
+  };
+
+  const hasTool = (toolName: string) => {
+    return tools.some((tool) => tool._toolName === toolName);
+  };
+
+  const getTools = () => tools;
+
+  const invokeTool = async (
+    toolName: string,
+    parameters: Record<string, unknown>,
+  ): Promise<ToolResult<unknown> | null> => {
+    const tool = tools.find((tool) => tool._toolName === toolName);
+    if (!tool) {
+      throw new Error(`Tool ${toolName} not found`);
+    }
+
+    const filteredParameters = filterToolParameters(tool, parameters);
+    const result = await tool(filteredParameters);
+    return result;
+  };
+
+  return {
+    registerTool,
+    hasTool,
+    getTools,
+    invokeTool,
+    collectionName,
+  };
 };
+
+export type ToolCollection = ReturnType<typeof createToolCollection>;

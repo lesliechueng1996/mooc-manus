@@ -4,15 +4,17 @@ import type { LlmClient } from '@/domain/external/llm';
 import type { AgentConfig } from '@/domain/models/app-config';
 import {
   createErrorEvent,
+  createMessageEvent,
   createToolEvent,
   type Event,
   ToolEventStatus,
 } from '@/domain/models/event';
 import type { Memory } from '@/domain/models/memory';
+import type { Message } from '@/domain/models/message';
 import type { ToolResult } from '@/domain/models/tool-result';
 import { getContextLogger } from '@/infrasturcture/logging';
-import type { BaseTool } from '../tools/base';
-import type { Message } from '@/domain/models/message';
+import type { ToolCollection } from '../tools/base';
+import type { Logger } from '@repo/pino-log';
 
 type ToolCall = {
   id: string;
@@ -28,7 +30,7 @@ type BaseAgentParams = {
   llm: LlmClient;
   memory: Memory;
   parseJson: ParseJson;
-  tools: Array<BaseTool>;
+  tools: Array<ToolCollection>;
 };
 
 type BaseAgentData = {
@@ -39,55 +41,68 @@ type BaseAgentData = {
   toolChoice: string | null;
 };
 
-export const createAgent = (
-  overrides: Partial<BaseAgentData> & BaseAgentParams,
-) => {
-  const logger = getContextLogger();
+export class BaseAgent {
+  protected readonly name: string = '';
+  protected readonly systemPrompt: string = '';
+  protected readonly format: string | null = null;
+  protected readonly retryInterval: number = 1;
+  protected readonly toolChoice: string | null = null;
 
-  const agent = {
-    name: '',
-    systemPrompt: '',
-    format: null,
-    retryInterval: 1,
-    toolChoice: null,
-    ...overrides,
-  };
+  protected readonly agentConfig: AgentConfig;
+  protected readonly llm: LlmClient;
+  protected readonly memory: Memory;
+  protected readonly parseJson: ParseJson;
+  protected readonly tools: Array<ToolCollection>;
 
-  const addToMemory = (messages: Array<Record<string, unknown>>) => {
-    if (agent.memory.isEmpty()) {
-      agent.memory.addMessage({
+  protected readonly logger: Logger;
+
+  constructor(params: BaseAgentParams, overrides: Partial<BaseAgentData> = {}) {
+    Object.assign(this, overrides);
+    this.agentConfig = params.agentConfig;
+    this.llm = params.llm;
+    this.memory = params.memory;
+    this.parseJson = params.parseJson;
+    this.tools = params.tools;
+    this.logger = getContextLogger();
+  }
+
+  protected addToMemory(messages: Array<Record<string, unknown>>) {
+    if (this.memory.isEmpty()) {
+      this.memory.addMessage({
         role: 'system',
-        content: agent.systemPrompt,
+        content: this.systemPrompt,
       });
     }
-    agent.memory.addMessages(messages);
-  };
+    this.memory.addMessages(messages);
+  }
 
-  const getFormattedTools = () => {
-    return agent.tools.map((tool) => tool._toolSchema);
-  };
+  protected getFormattedTools() {
+    return this.tools
+      .flatMap((tool) => tool.getTools())
+      .map((tool) => tool._toolSchema);
+  }
 
-  const invokeLLM = async (
+  protected async invokeLLM(
     messages: Array<Record<string, unknown>>,
     format: string | null = null,
-  ) => {
-    addToMemory(messages);
+  ) {
+    this.addToMemory(messages);
     const responseFormat = format ? { type: format } : undefined;
 
     let runIndex = 0;
-    while (runIndex < agent.agentConfig.maxRetries) {
+    while (runIndex < this.agentConfig.maxRetries) {
       try {
-        const message = await agent.llm.invoke({
+        const message = await this.llm.invoke({
           messages,
-          tools: getFormattedTools(),
+          tools: this.getFormattedTools(),
           responseFormat,
-          toolChoice: agent.toolChoice ?? undefined,
+          toolChoice: this.toolChoice ?? undefined,
         });
 
         if (message.role === 'assistant') {
           if (!message.content && !message.tool_calls) {
-            logger.warn('Assistant message is empty');
-            addToMemory([
+            this.logger.warn('Assistant message is empty');
+            this.addToMemory([
               { role: 'assistant', content: '' },
               {
                 role: 'user',
@@ -95,7 +110,7 @@ export const createAgent = (
               },
             ]);
             await new Promise((resolve) =>
-              setTimeout(resolve, agent.retryInterval * 1000),
+              setTimeout(resolve, this.retryInterval * 1000),
             );
             continue;
           }
@@ -112,16 +127,16 @@ export const createAgent = (
             // Only call 1 tool at a time
             filteredMessage.tool_calls = [message.tool_calls[0]];
           }
-          addToMemory([filteredMessage]);
+          this.addToMemory([filteredMessage]);
         } else {
-          logger.warn(`Unexpected message role: ${message.role}`);
-          addToMemory([message]);
+          this.logger.warn(`Unexpected message role: ${message.role}`);
+          this.addToMemory([message]);
         }
         return message;
       } catch (error) {
-        logger.error(error, 'Failed to invoke LLM');
+        this.logger.error(error, 'Failed to invoke LLM');
         await new Promise((resolve) =>
-          setTimeout(resolve, agent.retryInterval * 1000),
+          setTimeout(resolve, this.retryInterval * 1000),
         );
       } finally {
         runIndex++;
@@ -129,27 +144,31 @@ export const createAgent = (
     }
 
     throw new Error('Failed to invoke LLM after max retries');
-  };
+  }
 
-  const getTool = (toolName: string) => {
-    return agent.tools.find((tool) => tool._toolName === toolName);
-  };
+  protected getTool(toolName: string) {
+    return this.tools.find((tool) => tool.collectionName === toolName);
+  }
 
-  const invokeTool = async (
-    tool: BaseTool,
+  protected async invokeTool(
+    toolCollection: ToolCollection,
     toolName: string,
     toolArguments: Record<string, unknown>,
-  ): Promise<ToolResult<unknown>> => {
+  ): Promise<ToolResult<unknown>> {
     let toolRetryIndex = 0;
     let finalError: string = '';
-    while (toolRetryIndex < agent.agentConfig.maxRetries) {
+    while (toolRetryIndex < this.agentConfig.maxRetries) {
       try {
-        return await tool(toolArguments);
+        const result = await toolCollection.invokeTool(toolName, toolArguments);
+        if (!result) {
+          throw new Error(`Failed to invoke tool ${toolName}`);
+        }
+        return result;
       } catch (error) {
-        logger.error(error, `Failed to invoke tool ${toolName}`);
+        this.logger.error(error, `Failed to invoke tool ${toolName}`);
         finalError = error instanceof Error ? error.message : String(error);
         await new Promise((resolve) =>
-          setTimeout(resolve, agent.retryInterval * 1000),
+          setTimeout(resolve, this.retryInterval * 1000),
         );
       } finally {
         toolRetryIndex++;
@@ -161,21 +180,24 @@ export const createAgent = (
       message: finalError,
       data: null,
     };
-  };
+  }
 
-  const invoke = async function* (
+  protected async *invoke(
     query: string,
     format: string | null = null,
   ): AsyncGenerator<Event> {
     if (format === null) {
-      format = agent.format;
+      format = this.format;
     }
 
     try {
-      let message = await invokeLLM([{ role: 'user', content: query }], format);
+      let message = await this.invokeLLM(
+        [{ role: 'user', content: query }],
+        format,
+      );
 
       let iterationIndex = 0;
-      while (iterationIndex < agent.agentConfig.maxIterations) {
+      while (iterationIndex < this.agentConfig.maxIterations) {
         iterationIndex++;
 
         if (!message.tool_calls) {
@@ -189,23 +211,23 @@ export const createAgent = (
           }
           const toolCallId = toolCall.id || uuidv4();
           const functionName = toolCall.function.name;
-          const functionArguments = agent.parseJson(
+          const functionArguments = this.parseJson(
             toolCall.function.arguments,
           ) as Record<string, unknown>;
-          const tool = getTool(functionName);
+          const tool = this.getTool(functionName);
           if (!tool) {
             continue;
           }
 
           yield createToolEvent({
             toolCallId,
-            toolName: tool._toolName,
+            toolName: tool.collectionName,
             functionName,
             functionArguments,
             status: ToolEventStatus.CALLING,
           });
 
-          const result = await invokeTool(
+          const result = await this.invokeTool(
             tool,
             functionName,
             functionArguments,
@@ -213,7 +235,7 @@ export const createAgent = (
 
           yield createToolEvent({
             toolCallId,
-            toolName: tool._toolName,
+            toolName: tool.collectionName,
             functionName,
             functionArguments,
             functionResult: result,
@@ -228,12 +250,16 @@ export const createAgent = (
           });
         }
 
-        message = await invokeLLM(toolMessages);
+        message = await this.invokeLLM(toolMessages);
       }
 
-      if (iterationIndex >= agent.agentConfig.maxIterations) {
+      if (iterationIndex >= this.agentConfig.maxIterations) {
         yield createErrorEvent({
-          error: `Agent reached the maximum number of iterations: ${agent.agentConfig.maxIterations}`,
+          error: `Agent reached the maximum number of iterations: ${this.agentConfig.maxIterations}`,
+        });
+      } else {
+        yield createMessageEvent({
+          message: message.content as string,
         });
       }
     } catch (error) {
@@ -241,21 +267,18 @@ export const createAgent = (
         error: error instanceof Error ? error.message : String(error),
       });
     }
-  };
+  }
 
-  const getMemory = () => {
-    return agent.memory;
-  };
+  protected getMemory() {
+    return this.memory;
+  }
 
-  const compactMemory = () => {
-    agent.memory.compact();
-  };
+  protected compactMemory() {
+    this.memory.compact();
+  }
 
-  const rollBack = (message: Message) => {
-    const lastMessage = agent.memory.getLastMessage() as Record<
-      string,
-      unknown
-    >;
+  protected rollBack(message: Message) {
+    const lastMessage = this.memory.getLastMessage() as Record<string, unknown>;
     if (
       !lastMessage ||
       !lastMessage.tool_calls ||
@@ -268,21 +291,14 @@ export const createAgent = (
     const functionName = toolCall.function?.name;
     const toolCallId = toolCall.id;
     if (functionName === 'message_ask_user') {
-      agent.memory.addMessage({
+      this.memory.addMessage({
         role: 'tool',
         tool_call_id: toolCallId,
         function_name: functionName,
         content: JSON.stringify(message),
       });
     } else {
-      agent.memory.rollBack();
+      this.memory.rollBack();
     }
-  };
-
-  return {
-    invoke,
-    getMemory,
-    compactMemory,
-    rollBack,
-  };
-};
+  }
+}

@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 export enum ExecutionStatus {
   PENDING = 'pending',
@@ -7,81 +8,57 @@ export enum ExecutionStatus {
   FAILED = 'failed',
 }
 
-export type StepData = {
-  id: string;
-  description: string;
-  status: ExecutionStatus;
-  result: string | null;
-  error: string | null;
-  success: boolean;
-  attachments: Array<string>;
-};
+export const stepSchema = z.object({
+  id: z.uuid().default(uuidv4),
+  description: z.string().default(''),
+  status: z.enum(ExecutionStatus).default(ExecutionStatus.PENDING),
+  result: z.string().nullable().default(null),
+  error: z.string().nullable().default(null),
+  success: z.boolean().default(false),
+  attachments: z.array(z.string()).default([]),
+});
 
-export const createStep = (overrides?: Partial<StepData>) => {
-  const step: StepData = {
-    id: uuidv4(),
-    description: '',
-    status: ExecutionStatus.PENDING,
-    result: null,
-    error: null,
-    success: false,
-    attachments: [],
-    ...overrides,
-  };
+export type StepProps = z.infer<typeof stepSchema>;
 
-  const isDone = (): boolean => {
+export class Step {
+  constructor(private readonly props: StepProps) {}
+
+  isDone(): boolean {
     return (
-      step.status === ExecutionStatus.COMPLETED ||
-      step.status === ExecutionStatus.FAILED
+      this.props.status === ExecutionStatus.COMPLETED ||
+      this.props.status === ExecutionStatus.FAILED
     );
-  };
+  }
 
-  return {
-    isDone,
-  };
-};
+  static schema = stepSchema.transform((data) => new Step(data));
+}
 
-export type Step = ReturnType<typeof createStep>;
+export const planSchema = z.object({
+  id: z.uuid().default(uuidv4),
+  title: z.string().default(''),
+  goal: z.string().default(''),
+  language: z.string().default(''),
+  steps: z.array(Step.schema).default([]),
+  message: z.string().default(''),
+  status: z.enum(ExecutionStatus).default(ExecutionStatus.PENDING),
+  error: z.string().nullable().default(null),
+});
 
-export type PlanData = {
-  id: string;
-  title: string;
-  goal: string;
-  language: string;
-  steps: Array<Step>;
-  message: string;
-  status: ExecutionStatus;
-  error: string | null;
-};
+export type PlanProps = z.infer<typeof planSchema>;
 
-export const createPlan = (overrides?: Partial<PlanData>) => {
-  const plan: PlanData = {
-    id: uuidv4(),
-    title: '',
-    goal: '',
-    language: '',
-    steps: [],
-    message: '',
-    status: ExecutionStatus.PENDING,
-    error: null,
-    ...overrides,
-  };
+export class Plan {
+  constructor(private readonly props: PlanProps) {}
 
-  const isDone = (): boolean => {
+  isDone(): boolean {
     return (
-      plan.status === ExecutionStatus.COMPLETED ||
-      plan.status === ExecutionStatus.FAILED
+      this.props.status === ExecutionStatus.COMPLETED ||
+      this.props.status === ExecutionStatus.FAILED
     );
-  };
+  }
 
-  const getNextStep = () => {
-    return plan.steps.find((step) => !step.isDone());
-  };
+  getNextStep(): Step | undefined {
+    return this.props.steps.find((step) => !step.isDone());
+  }
 
-  return {
-    isDone,
-    getNextStep,
-  };
-};
-
-export type Plan = ReturnType<typeof createPlan>;
+  static schema = planSchema.transform((data) => new Plan(data));
+}

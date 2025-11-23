@@ -1,10 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { File } from './file';
-import type { Plan, Step } from './plan';
-import { createPlan, createStep } from './plan';
+import { Plan, Step } from './plan';
 import type { ToolResult } from './tool-result';
 
-enum PlanEventStatus {
+export enum PlanEventStatus {
   CREATED = 'created',
   UPDATED = 'updated',
   COMPLETED = 'completed',
@@ -37,7 +36,7 @@ export const createPlanEvent = (overrides?: Partial<PlanEvent>) => {
   const event: PlanEvent = {
     ...createBaseEvent(),
     type: 'plan',
-    plan: createPlan(),
+    plan: Plan.schema.parse({}),
     status: PlanEventStatus.CREATED,
     ...overrides,
   };
@@ -77,7 +76,7 @@ export const createStepEvent = (overrides?: Partial<StepEvent>) => {
   const event: StepEvent = {
     ...createBaseEvent(),
     type: 'step',
-    step: createStep(),
+    step: Step.schema.parse({}),
     status: StepEventStatus.STARTED,
     ...overrides,
   };
