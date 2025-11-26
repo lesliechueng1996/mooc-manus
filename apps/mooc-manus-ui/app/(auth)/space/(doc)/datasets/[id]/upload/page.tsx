@@ -7,7 +7,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { defineStepper } from '@/components/ui/stepper';
-import ChunkingStrategy from './_components/ChunkingStrategy';
+import ChunkingStrategy, {
+  type ChunkingStrategyType,
+} from './_components/ChunkingStrategy';
 import DataProcessing from './_components/DataProcessing';
 import UploadDocument from './_components/UploadDocument';
 
@@ -28,6 +30,7 @@ const { useStepper, steps, utils } = defineStepper(
 
 type UploadFileData = {
   fileids: string[];
+  chunkingStrategy: ChunkingStrategyType;
 };
 
 const UploadFilePage = () => {
@@ -36,6 +39,9 @@ const UploadFilePage = () => {
   const [canChangePage, setCanChangePage] = useState<boolean>(true);
   const [uploadFileData, setUploadFileData] = useState<UploadFileData>({
     fileids: [],
+    chunkingStrategy: {
+      processType: 'automatic',
+    },
   });
 
   const currentIndex = utils.getIndex(stepper.current.id);
@@ -110,7 +116,14 @@ const UploadFilePage = () => {
                 }
               />
             ),
-            'chunking-strategy': () => <ChunkingStrategy />,
+            'chunking-strategy': () => (
+              <ChunkingStrategy
+                chunkingStrategy={uploadFileData.chunkingStrategy}
+                onUpdate={(chunkingStrategy) =>
+                  setUploadFileData((prev) => ({ ...prev, chunkingStrategy }))
+                }
+              />
+            ),
             'data-processing': () => <DataProcessing />,
           })}
         </div>
