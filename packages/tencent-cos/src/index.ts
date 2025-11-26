@@ -8,7 +8,12 @@ import COS from 'cos-nodejs-sdk-v5';
 import { format } from 'date-fns';
 import qcloudCosSts from 'qcloud-cos-sts';
 import { v4 as uuidv4 } from 'uuid';
-import { ALLOWED_IMAGE_EXTENSIONS, ALLOWED_IMAGE_SIZE } from './constant';
+import {
+  ALLOWED_FILE_EXTENSIONS,
+  ALLOWED_FILE_SIZE,
+  ALLOWED_IMAGE_EXTENSIONS,
+  ALLOWED_IMAGE_SIZE,
+} from './constant';
 import { withTempFile } from './temp-file';
 
 const logger = getLogger();
@@ -142,26 +147,36 @@ export const getUploadFileTempCredential = async (
     throw new BadRequestException('File format is incorrect');
   }
 
-  if (ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+  const isFile = ALLOWED_FILE_EXTENSIONS.includes(ext);
+  const isImage = ALLOWED_IMAGE_EXTENSIONS.includes(ext);
+
+  if (!isFile && !isImage) {
+    throw new BadRequestException('File extension is incorrect');
+  }
+
+  // Validate file size based on type
+  if (isImage) {
     if (fileSize > ALLOWED_IMAGE_SIZE) {
       throw new BadRequestException('Image size exceeds the limit');
     }
-
-    const fileKey = generateFileKey(ext);
-    const credential = await getTempCredential(fileKey);
-
-    return {
-      credential,
-      key: fileKey,
-      bucket: {
-        schema: process.env.TENCENT_COS_SCHEMA ?? '',
-        name: process.env.TENCENT_COS_BUCKET ?? '',
-        region: process.env.TENCENT_COS_REGION ?? '',
-      },
-    };
+  } else if (isFile) {
+    if (fileSize > ALLOWED_FILE_SIZE) {
+      throw new BadRequestException('File size exceeds the limit');
+    }
   }
 
-  throw new BadRequestException('File extension is incorrect');
+  const fileKey = generateFileKey(ext);
+  const credential = await getTempCredential(fileKey);
+
+  return {
+    credential,
+    key: fileKey,
+    bucket: {
+      schema: process.env.TENCENT_COS_SCHEMA ?? '',
+      name: process.env.TENCENT_COS_BUCKET ?? '',
+      region: process.env.TENCENT_COS_REGION ?? '',
+    },
+  };
 };
 
 export const destroyCosClient = () => {

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { parseAsString, useQueryState } from 'nuqs';
 import SearchInput from '@/components/SearchInput';
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,7 @@ const DocumentToolsBar = () => {
     'keywords',
     parseAsString.withDefault(''),
   );
+  const { id } = useParams<{ id: string }>();
 
   return (
     <div className="flex items-center justify-between">
@@ -20,7 +23,9 @@ const DocumentToolsBar = () => {
       />
       <div className="flex items-center gap-2">
         <Button variant="outline">Recall Testing</Button>
-        <Button variant="default">Add Document</Button>
+        <Link href={`/space/datasets/${id}/upload`}>
+          <Button variant="default">Add Document</Button>
+        </Link>
       </div>
     </div>
   );
