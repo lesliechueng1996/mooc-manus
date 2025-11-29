@@ -3,6 +3,7 @@ import { contextStorage } from 'hono/context-storage';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { NotFoundException } from './application/error/exception';
+import { PuppeteerBingSearch } from './infrasturcture/external/search/puppeteer-bing-search';
 import { logger, loggerMiddleware } from './infrasturcture/logging/index';
 import { connectCos, destroyCosClient } from './infrasturcture/storage/cos';
 import { connectRedis, disconnectRedis } from './infrasturcture/storage/redis';
@@ -11,7 +12,6 @@ import { createApiRouter } from './interface/endpoint/router';
 import statusRouter from './interface/endpoint/status-router';
 import { exceptionHandler } from './interface/error/exception-handler';
 import { userIdMiddleware } from './interface/middleware/user-id-middleware';
-import { BingSearch } from './infrasturcture/external/search/bing-search';
 
 const app = createApiRouter();
 
@@ -39,8 +39,8 @@ app.get('/', async (c) => {
   // await messageQueue.put({ data: 'test' });
   // const message = await messageQueue.pop();
   // c.var.logger.info(`message: ${JSON.stringify(message)}`);
-  const bingSearch = new BingSearch();
-  const result = await bingSearch.search('gemini', 'past_month');
+  const bingSearch = new PuppeteerBingSearch();
+  const result = await bingSearch.search('小米股价', 'past_month');
   console.log(result);
 
   if (result.success && result.data) {

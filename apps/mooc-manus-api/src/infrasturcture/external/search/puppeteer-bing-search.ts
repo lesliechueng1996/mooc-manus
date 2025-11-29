@@ -1,22 +1,13 @@
+import type { Logger } from '@repo/pino-log';
+import * as cheerio from 'cheerio';
+import puppeteer, { type Browser } from 'puppeteer';
 import type { SearchEngine } from '@/domain/external/search';
 import { SearchResultItem, SearchResults } from '@/domain/models/search';
 import type { ToolResult } from '@/domain/models/tool-result';
 import { getContextLogger } from '@/infrasturcture/logging';
-import type { Logger } from '@repo/pino-log';
-import * as cheerio from 'cheerio';
 
-export class BingSearch implements SearchEngine {
+export class PuppeteerBingSearch implements SearchEngine {
   private readonly baseUrl: string = 'https://www.bing.com/search';
-  private readonly headers: Record<string, string> = {
-    'User-Agent':
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate',
-    Connection: 'keep-alive',
-    'Upgrade-Insecure-Requests': '1',
-    Accept:
-      'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-  };
   private readonly logger: Logger;
 
   constructor() {
@@ -31,41 +22,96 @@ export class BingSearch implements SearchEngine {
     if (dataRange && dataRange !== 'all') {
       const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
       const dateMappings: Record<string, string> = {
-        past_hour: 'ex1%3a"ez1"',
-        past_day: 'ex1%3a"ez1"',
-        past_week: 'ex1%3a"ez2"',
-        past_month: 'ex1%3a"ez3"',
-        past_year: `ex1%3a"ez5_${daysSinceEpoch - 365}_${daysSinceEpoch}"`,
+        past_hour: 'ex1:"ez1"',
+        past_day: 'ex1:"ez1"',
+        past_week: 'ex1:"ez2"',
+        past_month: 'ex1:"ez3"',
+        past_year: `ex1:"ez5_${daysSinceEpoch - 365}_${daysSinceEpoch}"`,
       };
       if (dataRange in dateMappings) {
         params.filters = dateMappings[dataRange];
       }
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
-
+    let browser: Browser | null = null;
     try {
-      const response = await fetch(
-        `${this.baseUrl}?${new URLSearchParams(params).toString()}`,
-        {
-          headers: this.headers,
-          signal: controller.signal,
-          redirect: 'follow', // 自动跟随重定向（默认行为，显式声明）
-        },
-      );
+      this.logger.debug('Launching puppeteer browser...');
+      browser = await puppeteer.launch({
+        headless: false, // Set to false for debugging to see what happens in the browser
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-blink-features=AutomationControlled', // Critical: Hide automation features
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+        ],
+      });
+      const page = await browser.newPage();
 
-      // 检查响应状态
-      if (!response.ok) {
-        throw new Error(
-          `Bing search returned status ${response.status}: ${response.statusText}`,
+      // Set User-Agent and language headers
+      await page.setExtraHTTPHeaders({
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      });
+
+      // Set viewport size
+      await page.setViewport({ width: 1920, height: 1080 });
+
+      // Further hide automation features
+      await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'webdriver', {
+          get: () => false,
+        });
+      });
+
+      // Add setLang=en parameter to force English results
+      params.setLang = 'en';
+      // Optional: Add cc=US to force US region results, which usually provides better English content
+      params.cc = 'US';
+
+      const url = `${this.baseUrl}?${new URLSearchParams(params).toString()}`;
+      this.logger.debug(`Navigating to ${url}`);
+
+      // Navigate to page
+      await page.goto(url, {
+        waitUntil: 'networkidle2', // Wait for network idle
+        timeout: 60000, // 60 second timeout
+      });
+
+      // Try to wait for search result elements to appear
+      // Bing search results are usually contained in id="b_content" or class="b_algo"
+      try {
+        this.logger.debug('Waiting for search results selector...');
+        await page.waitForSelector('#b_content', { timeout: 15000 });
+      } catch {
+        this.logger.warn(
+          'Search results selector (#b_content) not found within timeout',
         );
+        // If not found, try taking a screenshot (for local debugging only, remove in production)
+        // await page.screenshot({ path: 'bing-debug-error.png' });
       }
-      const html = await response.text();
+
+      // Get page content
+      const html = await page.content();
+      this.logger.debug(`Page loaded, HTML length: ${html.length}`);
+
+      // Simple check if content is valid
+      if (html.length < 5000) {
+        this.logger.warn(
+          'HTML content seems too short, might be a block page or captcha.',
+        );
+        this.logger.debug(`HTML preview: ${html.substring(0, 500)}`);
+      }
 
       const searchResults: SearchResultItem[] = [];
       const $ = cheerio.load(html);
       const resultElements = $('li.b_algo');
+
+      this.logger.debug(`Found ${resultElements.length} result elements`);
+
       for (const resultElement of resultElements) {
         try {
           const h2Element = $(resultElement).find('h2');
@@ -143,11 +189,12 @@ export class BingSearch implements SearchEngine {
             }),
           );
         } catch (error) {
-          this.logger.warn(error, 'Failed to parse Bing search result');
+          this.logger.warn(error, 'Failed to parse Bing search result item');
         }
       }
 
       let totalResults = 0;
+      // Find elements matching format: "About 34,800,000 results"
       const countElements = $(
         'span.sb_count, span.b_focusTextMedium, p.sb_count, p.b_focusTextMedium, div.sb_count, div.b_focusTextMedium',
       );
@@ -165,36 +212,33 @@ export class BingSearch implements SearchEngine {
         } catch {}
       }
 
-      const finalResult = SearchResults.schema.parse({
-        query,
-        dataRange,
-        totalResults,
-        results: searchResults,
-      });
       return {
         success: true,
         message: null,
-        data: finalResult,
+        data: SearchResults.schema.parse({
+          query,
+          dataRange,
+          totalResults,
+          results: searchResults,
+        }),
       };
     } catch (error) {
-      this.logger.error(error, 'Failed to search Bing');
+      this.logger.error(error, 'Failed to search Bing with Puppeteer');
       const errorResult = SearchResults.schema.parse({
         query,
         dataRange,
         totalResults: 0,
         results: [],
       });
-      const errorMessage =
-        error instanceof Error && error.name === 'AbortError'
-          ? 'Bing search request timeout after 60 seconds'
-          : `Bing search failed: ${error instanceof Error ? error.message : String(error)}`;
       return {
         success: false,
-        message: errorMessage,
+        message: `Bing search failed: ${error instanceof Error ? error.message : String(error)}`,
         data: errorResult,
       };
     } finally {
-      clearTimeout(timeoutId);
+      if (browser) {
+        await browser.close();
+      }
     }
   }
 }
