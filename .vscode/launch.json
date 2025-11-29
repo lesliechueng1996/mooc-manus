@@ -1,12 +1,44 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": "Debug Next.js",
-        "type": "node",
-        "request": "attach",
-        "port": 9229,
-        "skipFiles": ["<node_internals>/**"]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug API (tsx)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "mooc-manus-api", "dev"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
       }
-    ]
-  }
+    },
+    {
+      "name": "Debug API (tsx with inspect)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "tsx",
+      "runtimeArgs": ["--inspect", "src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/mooc-manus-api",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "envFile": "${workspaceFolder}/apps/mooc-manus-api/.env"
+    },
+    {
+      "name": "Attach to API",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "localRoot": "${workspaceFolder}/apps/mooc-manus-api",
+      "remoteRoot": "${workspaceFolder}/apps/mooc-manus-api",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

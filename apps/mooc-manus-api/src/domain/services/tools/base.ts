@@ -14,16 +14,16 @@ export type ToolSchema = {
 };
 
 export interface ToolFunction<
-  T extends (...args: unknown[]) => Promise<ToolResult<unknown>>,
+  T extends (arg: unknown) => Promise<ToolResult<unknown>>,
 > {
   _toolName: string;
   _toolDescription: string;
   _toolSchema: ToolSchema;
-  (...args: Parameters<T>): ReturnType<T>;
+  (arg: Parameters<T>[0]): ReturnType<T>;
 }
 
 export const createTool = <
-  T extends (...args: unknown[]) => Promise<ToolResult<unknown>>,
+  T extends (arg: unknown) => Promise<ToolResult<unknown>>,
 >(
   func: T,
   name: string,
@@ -52,12 +52,10 @@ export const createTool = <
   return toolFunc;
 };
 
-export type Tool = ToolFunction<
-  (...args: unknown[]) => Promise<ToolResult<unknown>>
->;
+export type Tool = ToolFunction<(arg: unknown) => Promise<ToolResult<unknown>>>;
 
 const filterToolParameters = (
-  func: ToolFunction<(...args: unknown[]) => Promise<ToolResult<unknown>>>,
+  func: ToolFunction<(arg: unknown) => Promise<ToolResult<unknown>>>,
   parameters: Record<string, unknown>,
 ) => {
   const toolSchema = func._toolSchema;
@@ -76,7 +74,7 @@ export const createToolCollection = (name: string) => {
   const collectionName = name;
 
   const registerTool = <
-    T extends (...args: unknown[]) => Promise<ToolResult<unknown>>,
+    T extends (arg: unknown) => Promise<ToolResult<unknown>>,
   >(
     tool: ToolFunction<T>,
   ) => {

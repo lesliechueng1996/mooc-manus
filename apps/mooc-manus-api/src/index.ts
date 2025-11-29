@@ -11,6 +11,7 @@ import { createApiRouter } from './interface/endpoint/router';
 import statusRouter from './interface/endpoint/status-router';
 import { exceptionHandler } from './interface/error/exception-handler';
 import { userIdMiddleware } from './interface/middleware/user-id-middleware';
+import { BingSearch } from './infrasturcture/external/search/bing-search';
 
 const app = createApiRouter();
 
@@ -38,6 +39,15 @@ app.get('/', async (c) => {
   // await messageQueue.put({ data: 'test' });
   // const message = await messageQueue.pop();
   // c.var.logger.info(`message: ${JSON.stringify(message)}`);
+  const bingSearch = new BingSearch();
+  const result = await bingSearch.search('gemini', 'past_month');
+  console.log(result);
+
+  if (result.success && result.data) {
+    for (const item of result.data.results) {
+      console.log(item.url, item.title, item.snippet);
+    }
+  }
   return c.text('Hello Hono!');
 });
 
