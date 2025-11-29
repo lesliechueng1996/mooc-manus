@@ -37,7 +37,7 @@ export class PuppeteerBingSearch implements SearchEngine {
     try {
       this.logger.debug('Launching puppeteer browser...');
       browser = await puppeteer.launch({
-        headless: false, // Set to false for debugging to see what happens in the browser
+        headless: true, // Set to false for debugging to see what happens in the browser
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
