@@ -14,22 +14,43 @@ import {
 } from '@/domain/models/app-config';
 import type { ToolResult } from '@/domain/models/tool-result';
 import { getContextLogger } from '@/infrasturcture/logging';
+import { redisClient } from '@/infrasturcture/storage/redis';
 import type { ToolSchema } from './base';
 
 export class McpClientManager {
   private readonly mcpConfig: McpConfig;
+  private readonly userId: string;
   private readonly clients: Map<string, McpClient>;
   private readonly tools: Map<string, Array<Tool>>;
   private readonly logger: Logger;
 
   private initialized: boolean;
 
-  constructor(mcpConfig: McpConfig) {
+  constructor(mcpConfig: McpConfig, userId: string) {
     this.mcpConfig = mcpConfig;
+    this.userId = userId;
     this.clients = new Map();
     this.tools = new Map();
     this.initialized = false;
     this.logger = getContextLogger();
+  }
+
+  private getCacheKey(): string {
+    return McpClientManager.getCacheKey(this.userId);
+  }
+
+  static getCacheKey(userId: string): string {
+    return `mcp:tools:user:${userId}`;
+  }
+
+  static async clearCache(userId: string) {
+    try {
+      const cacheKey = McpClientManager.getCacheKey(userId);
+      await redisClient.del(cacheKey);
+    } catch (error) {
+      const logger = getContextLogger();
+      logger.error(error, `Failed to clear MCP cache for user ${userId}`);
+    }
   }
 
   async initialize() {
@@ -41,12 +62,48 @@ export class McpClientManager {
       this.logger.info(
         `Found ${Object.keys(this.mcpConfig.mcpServers).length} MCP servers`,
       );
-      await this.connectMcpServers();
+
+      const cacheKey = this.getCacheKey();
+      const cachedTools = await redisClient.get(cacheKey);
+
+      if (cachedTools) {
+        try {
+          const toolsMap = JSON.parse(cachedTools);
+          for (const [serverName, tools] of Object.entries(toolsMap)) {
+            this.tools.set(serverName, tools as Array<Tool>);
+          }
+          this.logger.info(
+            `Restored MCP tools for user ${this.userId} from cache`,
+          );
+        } catch (error) {
+          this.logger.error(
+            error,
+            `Failed to parse cached tools for user ${this.userId}`,
+          );
+          await this.connectMcpServers();
+          await this.cacheToolsToRedis();
+        }
+      } else {
+        await this.connectMcpServers();
+        await this.cacheToolsToRedis();
+      }
+
       this.initialized = true;
       this.logger.info('MCP clients initialized successfully');
     } catch (error) {
       this.logger.error(error, 'Failed to initialize MCP clients');
       throw error;
+    }
+  }
+
+  private async cacheToolsToRedis() {
+    try {
+      const cacheKey = this.getCacheKey();
+      const toolsObj = Object.fromEntries(this.tools);
+      // Cache for 24 hours, but will be invalidated on config update
+      await redisClient.set(cacheKey, JSON.stringify(toolsObj), 'EX', 86400);
+    } catch (error) {
+      this.logger.error(error, 'Failed to cache MCP tools to Redis');
     }
   }
 
@@ -276,7 +333,20 @@ export class McpClientManager {
         throw new NotFoundException(`MCP tool ${toolName} not found`);
       }
 
-      const mcp = this.clients.get(originalServerName);
+      let mcp = this.clients.get(originalServerName);
+
+      // Lazy load connection if not present but config exists (e.g. restored from cache)
+      if (!mcp) {
+        const serverConfig = this.mcpConfig.mcpServers[originalServerName];
+        if (serverConfig) {
+          this.logger.info(
+            `Lazy connecting to MCP server ${originalServerName}...`,
+          );
+          await this.connectMcpServer(originalServerName, serverConfig);
+          mcp = this.clients.get(originalServerName);
+        }
+      }
+
       if (!mcp) {
         throw new NotFoundException(
           `MCP client for ${originalServerName} not connected`,

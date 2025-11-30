@@ -7,6 +7,7 @@ import {
   loadByUserId,
   saveAppConfig,
 } from '@/domain/repository/app-config-repository';
+import { McpClientManager } from '@/domain/services/tools/mcp';
 import { NotFoundException } from '../error/exception';
 
 const loadAppConfig = (userId: string) => loadByUserId(userId);
@@ -49,6 +50,7 @@ export const updateOrCreateMcpServers = async (
   const appConfig = await loadAppConfig(userId);
   appConfig.mcpConfig = mcpServerConfig;
   await saveAppConfig(userId, appConfig);
+  await McpClientManager.clearCache(userId);
   return appConfig.mcpConfig;
 };
 
@@ -59,6 +61,7 @@ export const deleteMcpServer = async (userId: string, serverName: string) => {
   }
   delete appConfig.mcpConfig.mcpServers[serverName];
   await saveAppConfig(userId, appConfig);
+  await McpClientManager.clearCache(userId);
   return appConfig.mcpConfig;
 };
 
@@ -73,5 +76,6 @@ export const setMcpServerEnabled = async (
   }
   appConfig.mcpConfig.mcpServers[serverName].enabled = enabled;
   await saveAppConfig(userId, appConfig);
+  await McpClientManager.clearCache(userId);
   return appConfig.mcpConfig;
 };
