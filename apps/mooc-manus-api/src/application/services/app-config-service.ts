@@ -49,7 +49,12 @@ export const updateOrCreateMcpServers = async (
   mcpServerConfig: McpConfig,
 ) => {
   const appConfig = await loadAppConfig(userId);
-  appConfig.mcpConfig = mcpServerConfig;
+  appConfig.mcpConfig = {
+    mcpServers: {
+      ...appConfig.mcpConfig.mcpServers,
+      ...mcpServerConfig.mcpServers,
+    },
+  };
   await saveAppConfig(userId, appConfig);
   await McpClientManager.clearCache(userId);
   return appConfig.mcpConfig;
