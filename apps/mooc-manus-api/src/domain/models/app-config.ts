@@ -18,7 +18,7 @@ export const agentConfigSchema = z.object({
 
 export type AgentConfig = z.infer<typeof agentConfigSchema>;
 
-enum McpTransport {
+export enum McpTransport {
   STDIO = 'stdio',
   SSE = 'sse',
   STREAMABLE_HTTP = 'streamable_http',
@@ -52,6 +52,10 @@ export const mcpServerConfigSchema = z.discriminatedUnion('transport', [
 ]);
 
 export type McpServerConfig = z.infer<typeof mcpServerConfigSchema>;
+
+export type McpServerStdioConfig = z.infer<typeof mcpServerStdioSchema>;
+
+export type McpServerHttpConfig = z.infer<typeof mcpServerHttpSchema>;
 
 export const mcpConfigSchema = z.object({
   mcpServers: z.record(z.string(), mcpServerConfigSchema).default({}),
