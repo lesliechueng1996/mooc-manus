@@ -2,6 +2,7 @@ import type {
   AgentConfig,
   LlmConfig,
   McpConfig,
+  McpTransport,
 } from '@/domain/models/app-config';
 import {
   loadByUserId,
@@ -78,4 +79,38 @@ export const setMcpServerEnabled = async (
   await saveAppConfig(userId, appConfig);
   await McpClientManager.clearCache(userId);
   return appConfig.mcpConfig;
+};
+
+export type ListMcpServerItem = {
+  serverName: string;
+  enabled: boolean;
+  transport: McpTransport;
+  tools: Array<string>;
+};
+
+export const getMcpServers = async (userId: string) => {
+  const appConfig = await loadAppConfig(userId);
+  const mcpClientManager = new McpClientManager(appConfig.mcpConfig, userId);
+
+  const mcpServers: Array<ListMcpServerItem> = [];
+
+  try {
+    await mcpClientManager.initialize();
+    const tools = mcpClientManager.tools;
+
+    for (const [serverName, serverConfig] of Object.entries(
+      appConfig.mcpConfig.mcpServers,
+    )) {
+      mcpServers.push({
+        serverName,
+        enabled: serverConfig.enabled,
+        transport: serverConfig.transport,
+        tools: tools.get(serverName)?.map((tool) => tool.name) ?? [],
+      });
+    }
+
+    return mcpServers;
+  } finally {
+    mcpClientManager.cleanUp();
+  }
 };

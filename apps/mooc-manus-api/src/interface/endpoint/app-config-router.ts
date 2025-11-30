@@ -9,6 +9,7 @@ import {
   deleteMcpServer,
   getAgentConfig,
   getLlmConfig,
+  getMcpServers,
   setMcpServerEnabled,
   updateAgentConfig,
   updateLlmConfig,
@@ -54,9 +55,14 @@ appConfigRouter.put(
   },
 );
 
-// appConfigRouter.get('/mcp-servers', async (c) => {
-//   // TODO: Implement
-// });
+appConfigRouter.get('/mcp-servers', async (c) => {
+  const mcpServers = await getMcpServers(c.var.userId);
+  return c.json(
+    createSuccessResponse({
+      mcpServers,
+    }),
+  );
+});
 
 appConfigRouter.post(
   '/mcp-servers',

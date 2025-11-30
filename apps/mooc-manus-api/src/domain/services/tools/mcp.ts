@@ -21,10 +21,11 @@ export class McpClientManager {
   private readonly mcpConfig: McpConfig;
   private readonly userId: string;
   private readonly clients: Map<string, McpClient>;
-  private readonly tools: Map<string, Array<Tool>>;
   private readonly logger: Logger;
 
   private initialized: boolean;
+
+  readonly tools: Map<string, Array<Tool>>;
 
   constructor(mcpConfig: McpConfig, userId: string) {
     this.mcpConfig = mcpConfig;
@@ -373,7 +374,7 @@ export class McpClientManager {
     }
   }
 
-  async cleanUp() {
+  cleanUp() {
     try {
       this.clients.clear();
       this.tools.clear();

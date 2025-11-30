@@ -103,3 +103,14 @@ export const updateMcpServerEnabledRequestSchema = z.object({
 export type UpdateMcpServerEnabledRequest = z.infer<
   typeof updateMcpServerEnabledRequestSchema
 >;
+
+export type ListMcpServerItem = {
+  serverName: string;
+  enabled: boolean;
+  transport: McpTransport;
+  tools: Array<string>;
+};
+
+export type ListMcpServerResponse = {
+  mcpServers: Array<ListMcpServerItem>;
+};
