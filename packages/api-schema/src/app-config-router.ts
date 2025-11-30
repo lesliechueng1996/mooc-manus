@@ -70,10 +70,23 @@ const mcpServerHttpSchema = mcpServerBaseSchema.extend({
 });
 
 // Combined schema using discriminated union
-const mcpServerConfigSchema = z.discriminatedUnion('transport', [
+const mcpServerConfigSchemaBase = z.discriminatedUnion('transport', [
   mcpServerStdioSchema,
   mcpServerHttpSchema,
 ]);
+
+// Add default transport as stdio when transport is missing
+export const mcpServerConfigSchema = z.preprocess((data) => {
+  if (
+    data &&
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    !('transport' in data)
+  ) {
+    return { ...data, transport: McpTransport.STREAMABLE_HTTP };
+  }
+  return data;
+}, mcpServerConfigSchemaBase);
 
 export const updateMcpServersRequestSchema = z.object({
   mcpServers: z.record(z.string(), mcpServerConfigSchema).default({}),
