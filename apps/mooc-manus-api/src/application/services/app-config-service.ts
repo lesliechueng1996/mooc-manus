@@ -1,8 +1,13 @@
-import type { AgentConfig, LlmConfig } from '@/domain/models/app-config';
+import type {
+  AgentConfig,
+  LlmConfig,
+  McpConfig,
+} from '@/domain/models/app-config';
 import {
   loadByUserId,
   saveAppConfig,
 } from '@/domain/repository/app-config-repository';
+import { NotFoundException } from '../error/exception';
 
 const loadAppConfig = (userId: string) => loadByUserId(userId);
 
@@ -35,4 +40,38 @@ export const updateAgentConfig = async (
   appConfig.agentConfig = agentConfig;
   await saveAppConfig(userId, appConfig);
   return appConfig.agentConfig;
+};
+
+export const updateOrCreateMcpServers = async (
+  userId: string,
+  mcpServerConfig: McpConfig,
+) => {
+  const appConfig = await loadAppConfig(userId);
+  appConfig.mcpConfig = mcpServerConfig;
+  await saveAppConfig(userId, appConfig);
+  return appConfig.mcpConfig;
+};
+
+export const deleteMcpServer = async (userId: string, serverName: string) => {
+  const appConfig = await loadAppConfig(userId);
+  if (!appConfig.mcpConfig.mcpServers[serverName]) {
+    throw new NotFoundException(`MCP server ${serverName} not found`);
+  }
+  delete appConfig.mcpConfig.mcpServers[serverName];
+  await saveAppConfig(userId, appConfig);
+  return appConfig.mcpConfig;
+};
+
+export const setMcpServerEnabled = async (
+  userId: string,
+  serverName: string,
+  enabled: boolean,
+) => {
+  const appConfig = await loadAppConfig(userId);
+  if (!appConfig.mcpConfig.mcpServers[serverName]) {
+    throw new NotFoundException(`MCP server ${serverName} not found`);
+  }
+  appConfig.mcpConfig.mcpServers[serverName].enabled = enabled;
+  await saveAppConfig(userId, appConfig);
+  return appConfig.mcpConfig;
 };

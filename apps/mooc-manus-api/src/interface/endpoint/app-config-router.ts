@@ -2,12 +2,17 @@ import {
   createSuccessResponse,
   updateAgentConfigRequestSchema,
   updateLlmConfigRequestSchema,
+  updateMcpServerEnabledRequestSchema,
+  updateMcpServersRequestSchema,
 } from '@repo/api-schema';
 import {
+  deleteMcpServer,
   getAgentConfig,
   getLlmConfig,
+  setMcpServerEnabled,
   updateAgentConfig,
   updateLlmConfig,
+  updateOrCreateMcpServers,
 } from '@/application/services/app-config-service';
 import { createApiRouter } from './router';
 import { zValidator } from './validator';
@@ -46,6 +51,41 @@ appConfigRouter.put(
       agentConfig,
     );
     return c.json(createSuccessResponse(updatedAgentConfig));
+  },
+);
+
+// appConfigRouter.get('/mcp-servers', async (c) => {
+//   // TODO: Implement
+// });
+
+appConfigRouter.post(
+  '/mcp-servers',
+  zValidator('json', updateMcpServersRequestSchema),
+  async (c) => {
+    const updateMcpServersRequest = c.req.valid('json');
+    await updateOrCreateMcpServers(c.var.userId, updateMcpServersRequest);
+    return c.json(createSuccessResponse());
+  },
+);
+
+appConfigRouter.delete('/mcp-servers/:serverName', async (c) => {
+  const serverName = c.req.param('serverName');
+  await deleteMcpServer(c.var.userId, serverName);
+  return c.json(createSuccessResponse());
+});
+
+appConfigRouter.patch(
+  '/mcp-servers/:serverName/enabled',
+  zValidator('json', updateMcpServerEnabledRequestSchema),
+  async (c) => {
+    const serverName = c.req.param('serverName');
+    const updateMcpServerEnabledRequest = c.req.valid('json');
+    await setMcpServerEnabled(
+      c.var.userId,
+      serverName,
+      updateMcpServerEnabledRequest.enabled,
+    );
+    return c.json(createSuccessResponse());
   },
 );
 

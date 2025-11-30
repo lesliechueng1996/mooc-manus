@@ -81,6 +81,7 @@ model AppConfig {
   userId      String   @unique @map("user_id")
   llmConfig   Json     @default("{}") @map("llm_config")
   agentConfig Json     @default("{}") @map("agent_config")
+  mcpConfig   Json     @default("{}") @map("mcp_config")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

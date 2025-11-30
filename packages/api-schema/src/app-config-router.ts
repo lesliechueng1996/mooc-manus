@@ -41,3 +41,52 @@ export type UpdateAgentConfigResponse = {
   maxRetries: number;
   maxSearchResults: number;
 };
+
+enum McpTransport {
+  STDIO = 'stdio',
+  SSE = 'sse',
+  STREAMABLE_HTTP = 'streamable_http',
+}
+
+// Base schema with common fields
+const mcpServerBaseSchema = z.object({
+  enabled: z.boolean().default(true),
+  description: z.string().nullable().default(null),
+  env: z.record(z.string(), z.string()).nullable().default(null),
+});
+
+// Schema for stdio transport
+const mcpServerStdioSchema = mcpServerBaseSchema.extend({
+  transport: z.literal(McpTransport.STDIO),
+  command: z.string(),
+  args: z.array(z.string()),
+});
+
+// Schema for HTTP-based transports (sse, streamable_http)
+const mcpServerHttpSchema = mcpServerBaseSchema.extend({
+  transport: z.enum([McpTransport.SSE, McpTransport.STREAMABLE_HTTP]),
+  url: z.url(),
+  headers: z.record(z.string(), z.string()).nullable().default(null),
+});
+
+// Combined schema using discriminated union
+const mcpServerConfigSchema = z.discriminatedUnion('transport', [
+  mcpServerStdioSchema,
+  mcpServerHttpSchema,
+]);
+
+export const updateMcpServersRequestSchema = z.object({
+  mcpServers: z.record(z.string(), mcpServerConfigSchema).default({}),
+});
+
+export type UpdateMcpServersRequest = z.infer<
+  typeof updateMcpServersRequestSchema
+>;
+
+export const updateMcpServerEnabledRequestSchema = z.object({
+  enabled: z.boolean(),
+});
+
+export type UpdateMcpServerEnabledRequest = z.infer<
+  typeof updateMcpServerEnabledRequestSchema
+>;

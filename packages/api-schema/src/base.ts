@@ -8,7 +8,7 @@ export const responseSchema = z.object({
 
 export type ResponseSchema = z.infer<typeof responseSchema>;
 
-export const createSuccessResponse = (data: object) => {
+export const createSuccessResponse = (data: object | null = null) => {
   return createResponse(200, 'success', data);
 };
 

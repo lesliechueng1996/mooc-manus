@@ -18,9 +18,51 @@ export const agentConfigSchema = z.object({
 
 export type AgentConfig = z.infer<typeof agentConfigSchema>;
 
+enum McpTransport {
+  STDIO = 'stdio',
+  SSE = 'sse',
+  STREAMABLE_HTTP = 'streamable_http',
+}
+
+// Base schema with common fields
+const mcpServerBaseSchema = z.object({
+  enabled: z.boolean().default(true),
+  description: z.string().nullable().default(null),
+  env: z.record(z.string(), z.string()).nullable().default(null),
+});
+
+// Schema for stdio transport
+const mcpServerStdioSchema = mcpServerBaseSchema.extend({
+  transport: z.literal(McpTransport.STDIO),
+  command: z.string(),
+  args: z.array(z.string()),
+});
+
+// Schema for HTTP-based transports (sse, streamable_http)
+const mcpServerHttpSchema = mcpServerBaseSchema.extend({
+  transport: z.enum([McpTransport.SSE, McpTransport.STREAMABLE_HTTP]),
+  url: z.url(),
+  headers: z.record(z.string(), z.string()).nullable().default(null),
+});
+
+// Combined schema using discriminated union
+export const mcpServerConfigSchema = z.discriminatedUnion('transport', [
+  mcpServerStdioSchema,
+  mcpServerHttpSchema,
+]);
+
+export type McpServerConfig = z.infer<typeof mcpServerConfigSchema>;
+
+export const mcpConfigSchema = z.object({
+  mcpServers: z.record(z.string(), mcpServerConfigSchema).default({}),
+});
+
+export type McpConfig = z.infer<typeof mcpConfigSchema>;
+
 export const appConfigSchema = z.object({
   llmConfig: llmConfigSchema.default(llmConfigSchema.parse({})),
   agentConfig: agentConfigSchema.default(agentConfigSchema.parse({})),
+  mcpConfig: mcpConfigSchema.default(mcpConfigSchema.parse({})),
 });
 
 export type AppConfig = z.infer<typeof appConfigSchema>;
