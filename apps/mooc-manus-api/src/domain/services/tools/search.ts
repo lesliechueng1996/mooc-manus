@@ -42,4 +42,6 @@ export const createSearchWebToolCollection = (searchEngine: SearchEngine) => {
   );
 
   searchWebToolCollection.registerTool(searchWebTool);
+
+  return searchWebToolCollection;
 };

@@ -385,3 +385,39 @@ export class McpClientManager {
     }
   }
 }
+
+export const createMcpToolCollection = async (
+  mcpConfig: McpConfig,
+  userId: string,
+) => {
+  const mcpClientManager = new McpClientManager(mcpConfig, userId);
+  await mcpClientManager.initialize();
+
+  const tools = mcpClientManager.getAllTools();
+
+  const getTools = () => {
+    return tools;
+  };
+
+  const hasTool = (toolName: string) => {
+    return tools.some((tool) => tool.function.name === toolName);
+  };
+
+  const invokeTool = async (
+    toolName: string,
+    args: Record<string, unknown>,
+  ) => {
+    return mcpClientManager.invoke(toolName, args);
+  };
+
+  const cleanUp = () => {
+    mcpClientManager.cleanUp();
+  };
+
+  return {
+    getTools,
+    hasTool,
+    invokeTool,
+    cleanUp,
+  };
+};
