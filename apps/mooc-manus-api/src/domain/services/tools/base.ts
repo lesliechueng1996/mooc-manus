@@ -13,24 +13,20 @@ export type ToolSchema = {
   };
 };
 
-export interface ToolFunction<
-  T extends (arg: unknown) => Promise<ToolResult<unknown>>,
-> {
+export interface ToolFunction<TArg = unknown, TResult = unknown> {
   _toolName: string;
   _toolDescription: string;
   _toolSchema: ToolSchema;
-  (arg: Parameters<T>[0]): ReturnType<T>;
+  (arg: TArg): Promise<ToolResult<TResult>>;
 }
 
-export const createTool = <
-  T extends (arg: unknown) => Promise<ToolResult<unknown>>,
->(
-  func: T,
+export const createTool = <TArg = unknown, TResult = unknown>(
+  func: (arg: TArg) => Promise<ToolResult<TResult>>,
   name: string,
   description: string,
   parameters: Record<string, Record<string, unknown>>,
   required: Array<string>,
-): ToolFunction<T> => {
+): ToolFunction<TArg, TResult> => {
   const toolSchema: ToolSchema = {
     type: 'function',
     function: {
@@ -44,7 +40,7 @@ export const createTool = <
     },
   };
 
-  const toolFunc = func as unknown as ToolFunction<T>;
+  const toolFunc = func as unknown as ToolFunction<TArg, TResult>;
   toolFunc._toolName = name;
   toolFunc._toolDescription = description;
   toolFunc._toolSchema = toolSchema;
@@ -52,10 +48,10 @@ export const createTool = <
   return toolFunc;
 };
 
-export type Tool = ToolFunction<(arg: unknown) => Promise<ToolResult<unknown>>>;
+export type Tool = ToolFunction<unknown, unknown>;
 
 const filterToolParameters = (
-  func: ToolFunction<(arg: unknown) => Promise<ToolResult<unknown>>>,
+  func: ToolFunction<unknown, unknown>,
   parameters: Record<string, unknown>,
 ) => {
   const toolSchema = func._toolSchema;
@@ -73,12 +69,10 @@ export const createToolCollection = (name: string) => {
   const tools: Array<Tool> = [];
   const collectionName = name;
 
-  const registerTool = <
-    T extends (arg: unknown) => Promise<ToolResult<unknown>>,
-  >(
-    tool: ToolFunction<T>,
+  const registerTool = <TArg = unknown, TResult = unknown>(
+    tool: ToolFunction<TArg, TResult>,
   ) => {
-    tools.push(tool);
+    tools.push(tool as Tool);
   };
 
   const hasTool = (toolName: string) => {

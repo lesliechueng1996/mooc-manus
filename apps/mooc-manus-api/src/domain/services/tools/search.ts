@@ -9,9 +9,8 @@ type SearchWebParams = {
 export const createSearchWebToolCollection = (searchEngine: SearchEngine) => {
   const searchWebToolCollection = createToolCollection('search_web_tools');
 
-  const searchWeb = async (params: unknown) => {
-    const typedParams = params as SearchWebParams;
-    return searchEngine.search(typedParams.query, typedParams.dataRange);
+  const searchWeb = async (params: SearchWebParams) => {
+    return searchEngine.search(params.query, params.dataRange);
   };
 
   const searchWebTool = createTool(
