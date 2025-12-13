@@ -20,7 +20,6 @@ export const destroy = async () => {
 export const createRedisStreamTask = (taskRunner: TaskRunner): Task => {
   const logger = getContextLogger();
   const id = uuidv4();
-  // let executionTask: Promise<void> | null = null;
   const abortController = new AbortController();
   const inputStream = createRedisStreamMessageQueue(`task:input:${id}`);
   const outputStream = createRedisStreamMessageQueue(`task:output:${id}`);
@@ -80,7 +79,7 @@ export const createRedisStreamTask = (taskRunner: TaskRunner): Task => {
   };
 
   const invoke: Task['invoke'] = () => {
-    if (!done && !inProgress) {
+    if (done && !inProgress) {
       inProgress = true;
       executeTask();
       logger.info(`Executing task ${id}`);
