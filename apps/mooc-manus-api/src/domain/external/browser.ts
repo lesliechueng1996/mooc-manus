@@ -1,16 +1,29 @@
 import type { ToolResult } from '../models/tool-result';
 
-type Position = {
+export type Position = {
   x: number;
   y: number;
 };
 
 export interface Browser {
-  viewPage(): Promise<ToolResult<string>>;
+  viewPage(): Promise<
+    ToolResult<{
+      interactiveElements: string[];
+      content: string;
+    }>
+  >;
 
-  navigate(url: string): Promise<ToolResult<void>>;
+  navigate(url: string): Promise<
+    ToolResult<{
+      interactiveElements: string[];
+    }>
+  >;
 
-  restart(url: string): Promise<ToolResult<void>>;
+  restart(url: string): Promise<
+    ToolResult<{
+      interactiveElements: string[];
+    }>
+  >;
 
   click(index: number): Promise<ToolResult<void>>;
 
@@ -38,9 +51,9 @@ export interface Browser {
 
   scrollDown(toBottom?: boolean): Promise<ToolResult<void>>;
 
-  screenshot(fullPage?: boolean): Promise<ToolResult<string>>;
+  screenshot(fullPage?: boolean): Promise<Buffer>;
 
-  consoleExec(javascript: string): Promise<ToolResult<void>>;
+  consoleExec(javascript: string): Promise<ToolResult<unknown>>;
 
-  consoleView(maxLines?: number): Promise<ToolResult<string>>;
+  consoleView(maxLines?: number): Promise<ToolResult<string[]>>;
 }
