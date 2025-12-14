@@ -469,7 +469,7 @@ export class PlaywrightBrowser implements BrowserInterface {
         //   }`,
         //   element,
         // );
-        const isVisible = element.isVisible();
+        const isVisible = await element.isVisible();
 
         if (!isVisible) {
           element.scrollIntoViewIfNeeded();
