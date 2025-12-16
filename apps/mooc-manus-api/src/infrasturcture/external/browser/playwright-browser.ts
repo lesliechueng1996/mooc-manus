@@ -13,7 +13,11 @@ import type {
 } from '@/domain/external/browser';
 import type { LlmClient } from '@/domain/external/llm';
 import { getContextLogger } from '@/infrasturcture/logging';
-import { getInteractiveElements, getVisibleContent } from './browser-func';
+import {
+  getInteractiveElements,
+  getVisibleContent,
+  injectConsoleLogs,
+} from './browser-func';
 
 type InteractiveElement = {
   index: number;
@@ -398,6 +402,7 @@ export class PlaywrightBrowser implements BrowserInterface {
         throw new Error('Page not initialized');
       }
 
+      await this.page.evaluate(injectConsoleLogs);
       const result = await this.page.evaluate(javascript);
 
       return {
@@ -423,7 +428,7 @@ export class PlaywrightBrowser implements BrowserInterface {
       }
 
       let logs = (await this.page.evaluate(
-        '() => window.console.log || []',
+        '() => window.console.logs || []',
       )) as Array<string>;
 
       if (maxLines) {
@@ -529,7 +534,12 @@ export class PlaywrightBrowser implements BrowserInterface {
           throw new Error(`Element with index ${data} not found`);
         }
 
-        await element.fill(text);
+        try {
+          await element.fill(text);
+        } catch {
+          await element.click();
+          await element.fill(text);
+        }
       } else if (
         typeof data === 'object' &&
         data !== null &&

@@ -193,3 +193,14 @@ export const getInteractiveElements = `
     return interactiveElements;
   })();
 `;
+
+export const injectConsoleLogs = `
+  (() => {
+    window.console.logs = [];
+    const originalConsoleLog = console.log;
+    console.log = (...args) => {
+      window.console.logs.push(args.join(' '));
+      originalConsoleLog.apply(console, args);
+    }
+  })();
+`;
