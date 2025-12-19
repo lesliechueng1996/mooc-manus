@@ -1,5 +1,5 @@
-import { Elysia } from 'elysia';
 import { createAPILoggerConfiguration, getLogger } from '@repo/common';
+import { Elysia } from 'elysia';
 
 await createAPILoggerConfiguration();
 const logger = getLogger();
