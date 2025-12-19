@@ -1,0 +1,19 @@
+{
+  "name": "@repo/builtin-tool",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@repo/common": "workspace:*",
+    "@repo/internal-langchain": "workspace:*",
+    "date-fns": "^4.1.0",
+    "duck-duck-scrape": "^2.2.7",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

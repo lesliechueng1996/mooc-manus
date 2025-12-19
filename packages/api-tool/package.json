@@ -1,0 +1,18 @@
+{
+  "name": "@repo/api-tool",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@repo/common": "workspace:*",
+    "@repo/internal-langchain": "workspace:*",
+    "@repo/prisma-database": "workspace:*",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
