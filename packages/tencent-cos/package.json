@@ -1,0 +1,19 @@
+{
+  "name": "@repo/tencent-cos",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@repo/common": "workspace:*",
+    "cos-js-sdk-v5": "^1.10.1",
+    "cos-nodejs-sdk-v5": "^2.15.4",
+    "date-fns": "^4.1.0",
+    "qcloud-cos-sts": "^3.1.3"
+  }
+}
