@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider     = "postgresql"
+  relationMode = "prisma"
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  uploadFiles      UploadFile[]
+  apiToolProviders ApiToolProvider[]
+  datasets         Dataset[]
+  processRules     ProcessRule[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+model AppConfig {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  llmConfig   Json     @default("{}") @map("llm_config")
+  agentConfig Json     @default("{}") @map("agent_config")
+  mcpConfig   Json     @default("{}") @map("mcp_config")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("t_app_config")
+}
+
+model UploadFile {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   @default("")
+  key       String   @default("")
+  size      Int      @default(0)
+  extension String   @default("")
+  mimeType  String   @default("") @map("mime_type")
+  hash      String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  document Document?
+
+  @@index([userId])
+  @@map("t_upload_file")
+}
+
+model ApiToolProvider {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String   @default("")
+  icon          String   @default("")
+  description   String   @default("")
+  openapiSchema String   @default("") @map("openapi_schema")
+  headers       Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  apiTools ApiTool[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("t_api_tool_provider")
+}
+
+model ApiTool {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  providerId  String          @map("provider_id")
+  provider    ApiToolProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String          @default("")
+  description String          @default("")
+  url         String          @default("")
+  method      String          @default("")
+  parameters  Json            @default("[]")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@unique([providerId, name])
+  @@index([userId])
+  @@map("t_api_tool")
+}
+
+model Dataset {
+  id            String        @id @default(cuid())
+  userId        String        @map("user_id")
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String        @default("")
+  icon          String        @default("")
+  description   String        @default("")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  processRules  ProcessRule[]
+  documents     Document[]
+  keywordTables KeywordTable?
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("t_dataset")
+}
+
+model ProcessRule {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datasetId String   @map("dataset_id")
+  dataset   Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  mode      String   @default("")
+  rule      Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  documents Document[]
+
+  @@index([userId])
+  @@index([datasetId])
+  @@map("t_process_rule")
+}
+
+model Document {
+  id                   String      @id @default(cuid())
+  userId               String      @map("user_id")
+  datasetId            String      @map("dataset_id")
+  dataset              Dataset     @relation(fields: [datasetId], references: [id])
+  uploadFileId         String      @map("upload_file_id")
+  uploadFile           UploadFile  @relation(fields: [uploadFileId], references: [id])
+  processRuleId        String      @map("process_rule_id")
+  processRule          ProcessRule @relation(fields: [processRuleId], references: [id])
+  batch                String      @default("")
+  name                 String      @default("")
+  position             Int         @default(1)
+  characterCount       Int         @default(0) @map("character_count")
+  tokenCount           Int         @default(0) @map("token_count")
+  processingStartAt    DateTime?   @map("processing_start_at")
+  parsingCompletedAt   DateTime?   @map("parsing_completed_at")
+  splittingCompletedAt DateTime?   @map("splitting_completed_at")
+  indexingCompletedAt  DateTime?   @map("indexing_completed_at")
+  completedAt          DateTime?   @map("completed_at")
+  stoppedAt            DateTime?   @map("stopped_at")
+  error                String?
+  enabled              Boolean     @default(true)
+  disabledAt           DateTime?   @map("disabled_at")
+  status               String      @default("")
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+
+  segments Segment[]
+
+  @@unique([uploadFileId])
+  @@index([datasetId])
+  @@index([processRuleId])
+  @@map("t_document")
+}
+
+model Segment {
+  id                  String    @id @default(cuid())
+  userId              String    @map("user_id")
+  datasetId           String    @map("dataset_id")
+  documentId          String    @map("document_id")
+  document            Document  @relation(fields: [documentId], references: [id])
+  nodeId              String    @default("") @map("node_id")
+  position            Int       @default(1)
+  content             String    @default("")
+  characterCount      Int       @default(0) @map("character_count")
+  tokenCount          Int       @default(0) @map("token_count")
+  keywords            Json      @default("[]")
+  hash                String    @default("")
+  hitCount            Int       @default(0) @map("hit_count")
+  enabled             Boolean   @default(false)
+  disabledAt          DateTime? @map("disabled_at")
+  processingStartAt   DateTime? @map("processing_start_at")
+  indexingCompletedAt DateTime? @map("indexing_completed_at")
+  completedAt         DateTime? @map("completed_at")
+  stoppedAt           DateTime? @map("stopped_at")
+  error               String?
+  status              String    @default("")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([datasetId])
+  @@index([documentId])
+  @@index([nodeId])
+  @@map("t_segment")
+}
+
+model KeywordTable {
+  id        String   @id @default(cuid())
+  datasetId String   @map("dataset_id")
+  dataset   Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  keywords  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([datasetId])
+  @@map("t_keyword_table")
+}
