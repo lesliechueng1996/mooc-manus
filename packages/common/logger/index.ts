@@ -1,9 +1,9 @@
+import { getRotatingFileSink } from '@logtape/file';
 import {
   configure,
   getConsoleSink,
   getLogger as getLogtapeLogger,
 } from '@logtape/logtape';
-import { getRotatingFileSink } from '@logtape/file';
 
 let loggerName = 'mooc-manus-api';
 

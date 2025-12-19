@@ -1,5 +1,4 @@
-import { BadRequestException } from '@repo/common';
-import { getLogger } from '@repo/common';
+import { BadRequestException, getLogger } from '@repo/common';
 import { openapiSchema } from '../schema/openapi';
 
 export const validateOpenapiSchema = (schema: string) => {

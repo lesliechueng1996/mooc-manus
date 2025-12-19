@@ -1,8 +1,8 @@
+import { getLogger } from '@repo/common';
 import {
   DallEAPIWrapper,
   type DallEAPIWrapperParams,
 } from '@repo/internal-langchain/openai';
-import { getLogger } from '@repo/common';
 
 const defaultOptions = {
   apiKey: process.env.OPENAI_API_KEY,
