@@ -1,7 +1,6 @@
 'use client';
 
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import COS from 'cos-js-sdk-v5';
 import { Eye, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import {
@@ -23,8 +22,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { ALLOWED_IMAGE_EXTENSIONS, ALLOWED_IMAGE_SIZE } from '@/lib/constant';
-import { log } from '@/lib/logger';
+import {
+  ALLOWED_IMAGE_EXTENSIONS,
+  ALLOWED_IMAGE_SIZE,
+  uploadFile,
+} from '@/lib/cos';
+import { getLogger } from '@/lib/logger';
 import { cn, getActionErrorMsg } from '@/lib/utils';
 
 export type ImageUploadRef = {
@@ -93,6 +96,8 @@ const ImageUpload = ({
   };
 
   const uploadImage = async (defaultImageUrl?: string) => {
+    const logger = getLogger();
+
     const file = inputRef.current?.files?.[0];
     if (!file && !imageUrl && required && !defaultImageUrl) {
       toast.error('Please upload an image');
@@ -118,39 +123,24 @@ const ImageUpload = ({
 
       const { credential, key, bucket } = res.data;
 
-      const cos = new COS({
-        SecretId: credential.tmpSecretId,
-        SecretKey: credential.tmpSecretKey,
-        SecurityToken: credential.sessionToken,
-        StartTime: credential.startTime,
-        ExpiredTime: credential.expiredTime,
-      });
-      const promise = new Promise<string | null>((resolve) => {
-        cos.uploadFile(
-          {
-            Bucket: bucket.name,
-            Region: bucket.region,
-            Key: key,
-            Body: file,
-            SliceSize: ALLOWED_IMAGE_SIZE,
-          },
-          (err, data) => {
-            if (err) {
-              toast.error('Upload failed');
-              resolve(null);
-              return;
-            }
-
-            toast.success('Upload successful');
-            const url = `${bucket.schema}://${data.Location}`;
-            resolve(url);
-          },
-        );
+      const url = await uploadFile(credential, {
+        bucket: bucket.name,
+        region: bucket.region,
+        key,
+        file,
+        sliceSize: ALLOWED_IMAGE_SIZE,
+        schema: bucket.schema,
       });
 
-      return await promise;
+      if (url === null) {
+        toast.error('Upload failed');
+      } else {
+        toast.success('Upload successful');
+      }
+
+      return url;
     } catch (error) {
-      log.error('Image upload failed: %o', { error });
+      logger.error('Image upload failed: %o', { error });
       toast.error('Upload failed');
       return null;
     } finally {

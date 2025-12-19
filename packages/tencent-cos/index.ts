@@ -2,8 +2,8 @@ import * as fs from 'node:fs/promises';
 import {
   BadRequestException,
   InternalServerErrorException,
+  getLogger,
 } from '@repo/common';
-import { getLogger } from '@repo/pino-log';
 import COS from 'cos-nodejs-sdk-v5';
 import { format } from 'date-fns';
 import qcloudCosSts from 'qcloud-cos-sts';

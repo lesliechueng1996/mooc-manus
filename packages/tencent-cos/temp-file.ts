@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { getLogger } from '@repo/pino-log';
+import { getLogger } from '@repo/common';
 
 const logger = getLogger();
 
