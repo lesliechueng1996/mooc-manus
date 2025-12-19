@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "db:migrate": "bunx --bun prisma migrate dev",
-    "db:generate": "bunx --bun prisma generate"
+    "db:generate": "bunx --bun prisma generate",
+    "lint": "biome check",
+    "format": "biome check --write"
   },
   "devDependencies": {
     "@types/bun": "latest",

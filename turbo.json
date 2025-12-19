@@ -20,15 +20,17 @@
         "DATABASE_URL"
       ]
     },
+    "format": {
+      "dependsOn": [
+        "^format"
+      ],
+      "cache": false
+    },
     "lint": {
       "dependsOn": [
         "^lint"
-      ]
-    },
-    "check-types": {
-      "dependsOn": [
-        "^check-types"
-      ]
+      ],
+      "cache": false
     },
     "dev": {
       "dependsOn": [
