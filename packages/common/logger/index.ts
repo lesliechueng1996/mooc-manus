@@ -27,6 +27,26 @@ export const createUILoggerConfiguration = () => {
   });
 };
 
+export const createAPILoggerConfiguration = () => {
+  loggerName = 'mooc-manus-api';
+  return configure({
+    sinks: {
+      console: getConsoleSink(),
+      file: getRotatingFileSink('mooc-manus-api.log', {
+        maxSize: 1024 * 1024 * 5,
+        maxFiles: 5,
+      }),
+    },
+    loggers: [
+      {
+        category: 'mooc-manus-api',
+        lowestLevel: 'debug',
+        sinks: ['console', 'file'],
+      },
+    ],
+  });
+};
+
 export const getLogger = () => {
   return getLogtapeLogger(loggerName);
 };

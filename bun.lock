@@ -15,6 +15,7 @@
       "name": "mooc-manus-api",
       "version": "1.0.50",
       "dependencies": {
+        "@repo/common": "workspace:*",
         "elysia": "latest",
       },
       "devDependencies": {

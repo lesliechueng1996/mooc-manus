@@ -1,7 +1,16 @@
 import { Elysia } from 'elysia';
+import { createAPILoggerConfiguration, getLogger } from '@repo/common';
 
-const app = new Elysia().get('/', () => 'Hello Elysia').listen(3000);
+await createAPILoggerConfiguration();
+const logger = getLogger();
 
-console.log(
+const app = new Elysia()
+  .get('/', () => {
+    logger.info('Hello Elysia');
+    return 'Hello Elysia';
+  })
+  .listen(3000);
+
+logger.info(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
 );
