@@ -5,7 +5,7 @@ import { logger as loggerPlugin } from './logger';
 export const userId = new Elysia({ name: 'userId' })
   .use(loggerPlugin)
   .derive(({ headers, logger }) => {
-    const userId = headers['X-User-Id'];
+    const userId = headers['x-user-id'];
 
     if (!userId) {
       logger.error('User ID is required');

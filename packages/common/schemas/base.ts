@@ -8,22 +8,18 @@ export const responseSchema = z.object({
 
 export type ResponseSchema = z.infer<typeof responseSchema>;
 
-export const createSuccessResponse = (data: object | null = null) => {
+export const createResponse = <T>(code: number, msg: string, data: T) => {
+  return {
+    code,
+    msg,
+    data,
+  };
+};
+
+export const createSuccessResponse = <T>(data: T) => {
   return createResponse(200, 'success', data);
 };
 
 export const createErrorResponse = (code: number, msg: string) => {
   return createResponse(code, msg, null);
-};
-
-export const createResponse = (
-  code: number,
-  msg: string,
-  data: object | null,
-) => {
-  return responseSchema.parse({
-    code,
-    msg,
-    data,
-  });
 };
