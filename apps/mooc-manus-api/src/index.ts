@@ -6,12 +6,12 @@ import {
   getLogger,
 } from '@repo/common';
 import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { appConfigRouter } from '@/interface/endpoint/app-config-router';
 import { httpLog } from './interface/plugin/http-log';
 import { logger as loggerPlugin } from './interface/plugin/logger';
 import { requestId } from './interface/plugin/request-id';
 import { userId } from './interface/plugin/user-id';
-import { z } from 'zod';
 
 await createAPILoggerConfiguration();
 const logger = getLogger();

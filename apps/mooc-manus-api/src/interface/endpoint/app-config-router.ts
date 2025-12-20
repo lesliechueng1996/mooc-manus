@@ -1,6 +1,6 @@
-import { AppConfigService } from '@/application/services/app-config-service';
 import { createSuccessResponse } from '@repo/common';
 import { Elysia } from 'elysia';
+import { AppConfigService } from '@/application/services/app-config-service';
 import { logger as loggerPlugin } from '../plugin/logger';
 import { userId } from '../plugin/user-id';
 import {

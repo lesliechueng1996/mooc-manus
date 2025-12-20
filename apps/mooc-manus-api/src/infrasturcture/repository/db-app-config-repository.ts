@@ -1,6 +1,6 @@
+import { InternalServerErrorException } from '@repo/common';
 import { type AppConfig, appConfigSchema } from '@/domain/model/app-config';
 import type { Logger } from '../logging';
-import { InternalServerErrorException } from '@repo/common';
 import { databaseClient } from '../storage/database';
 
 export class DbAppConfigRepository {

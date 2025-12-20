@@ -1,7 +1,7 @@
 import { randomUUIDv7 } from 'bun';
 import { Elysia } from 'elysia';
-import { logger as loggerPlugin } from './logger';
 import { isApiPath } from './http-log';
+import { logger as loggerPlugin } from './logger';
 
 export const requestId = new Elysia({ name: 'requestId' })
   .use(loggerPlugin)
