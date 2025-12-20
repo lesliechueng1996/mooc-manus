@@ -44,3 +44,15 @@ export class ConflictException extends BaseException {
     super(409, message, 'CONFLICT');
   }
 }
+
+export class UnprocessableContentException extends BaseException {
+  constructor(message = 'Unprocessable Content') {
+    super(422, message, 'UNPROCESSABLE_CONTENT');
+  }
+}
+
+export class TooManyRequestsException extends BaseException {
+  constructor(message = 'Too Many Requests') {
+    super(429, message, 'TOO_MANY_REQUESTS');
+  }
+}
