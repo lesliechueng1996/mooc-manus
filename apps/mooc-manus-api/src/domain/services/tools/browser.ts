@@ -1,5 +1,5 @@
 import type { Browser } from '@/domain/external/browser';
-import { tool, ToolCollection } from './base';
+import { ToolCollection, tool } from './base';
 
 export class BrowserToolCollection extends ToolCollection {
   constructor(private readonly browser: Browser) {

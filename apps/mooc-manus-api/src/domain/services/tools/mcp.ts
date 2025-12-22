@@ -3,7 +3,6 @@ import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
 import type { Tool } from '@modelcontextprotocol/sdk/types';
-import type { Logger } from '@/infrastructure/logging';
 import { NotFoundException } from '@repo/common';
 import {
   type McpConfig,
@@ -13,6 +12,7 @@ import {
   McpTransport,
 } from '@/domain/model/app-config';
 import type { ToolResult } from '@/domain/model/tool-result';
+import type { Logger } from '@/infrastructure/logging';
 import { RedisClient } from '@/infrastructure/storage/redis';
 import { type BaseTool, ToolCollection, type ToolSchema } from './base';
 

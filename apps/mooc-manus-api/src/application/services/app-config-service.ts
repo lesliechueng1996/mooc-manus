@@ -3,11 +3,12 @@ import type {
   LlmConfig,
   McpConfig,
 } from '@/domain/model/app-config';
+import type { AppConfigRepository } from '@/domain/repository/app-config-repository';
 import type { Logger } from '@/infrastructure/logging';
 import { DbAppConfigRepository } from '@/infrastructure/repository/db-app-config-repository';
 
 export class AppConfigService {
-  private readonly appConfigRepository: DbAppConfigRepository;
+  private readonly appConfigRepository: AppConfigRepository;
 
   constructor(private readonly logger: Logger) {
     this.appConfigRepository = new DbAppConfigRepository(this.logger);

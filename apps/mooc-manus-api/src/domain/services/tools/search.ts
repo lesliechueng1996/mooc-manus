@@ -1,5 +1,5 @@
 import type { SearchEngine } from '@/domain/external/search';
-import { tool, ToolCollection } from './base';
+import { ToolCollection, tool } from './base';
 
 type SearchWebParams = {
   query: string;

@@ -8,7 +8,7 @@ export const llmConfigSchema = z.object({
   maxTokens: z.int().min(0).default(8192),
 });
 
-// export type LlmConfig = z.infer<typeof llmConfigSchema>;
+export type LlmConfig = z.infer<typeof llmConfigSchema>;
 
 export const agentConfigSchema = z.object({
   maxIterations: z.int().min(0).max(1000).default(100),

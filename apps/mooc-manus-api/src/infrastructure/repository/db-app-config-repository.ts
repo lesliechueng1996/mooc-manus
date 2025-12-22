@@ -1,9 +1,10 @@
 import { InternalServerErrorException } from '@repo/common';
 import { type AppConfig, appConfigSchema } from '@/domain/model/app-config';
+import type { AppConfigRepository } from '@/domain/repository/app-config-repository';
 import type { Logger } from '../logging';
 import { databaseClient } from '../storage/database';
 
-export class DbAppConfigRepository {
+export class DbAppConfigRepository implements AppConfigRepository {
   constructor(private readonly logger: Logger) {}
 
   private async createDefaultAppConfigIfNotExists(
