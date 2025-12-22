@@ -1,13 +1,5 @@
-import { z } from 'zod';
-
-export const createToolResultSchema = <T extends z.ZodTypeAny>(
-  dataSchema: T,
-) => {
-  return z.object({
-    success: z.boolean().default(true),
-    message: z.string().nullable().default(null),
-    data: dataSchema,
-  });
+export type ToolResult<T> = {
+  success: boolean;
+  message: string | null;
+  data: T | null;
 };
-
-export type ToolResult = z.infer<ReturnType<typeof createToolResultSchema>>;

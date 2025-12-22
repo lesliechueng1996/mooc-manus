@@ -1,0 +1,59 @@
+import type { ToolResult } from '../model/tool-result';
+
+export type Position = {
+  x: number;
+  y: number;
+};
+
+export interface Browser {
+  viewPage(): Promise<
+    ToolResult<{
+      interactiveElements: string[];
+      content: string;
+    }>
+  >;
+
+  navigate(url: string): Promise<
+    ToolResult<{
+      interactiveElements: string[];
+    }>
+  >;
+
+  restart(url: string): Promise<
+    ToolResult<{
+      interactiveElements: string[];
+    }>
+  >;
+
+  click(index: number): Promise<ToolResult<void>>;
+
+  click(position: Position): Promise<ToolResult<void>>;
+
+  input(
+    text: string,
+    pressEnter: boolean,
+    index: number,
+  ): Promise<ToolResult<void>>;
+
+  input(
+    text: string,
+    pressEnter: boolean,
+    position: Position,
+  ): Promise<ToolResult<void>>;
+
+  moveMouse(position: Position): Promise<ToolResult<void>>;
+
+  pressKey(key: string): Promise<ToolResult<void>>;
+
+  selectOption(index: number, option: number): Promise<ToolResult<void>>;
+
+  scrollUp(toTop?: boolean): Promise<ToolResult<void>>;
+
+  scrollDown(toBottom?: boolean): Promise<ToolResult<void>>;
+
+  screenshot(fullPage?: boolean): Promise<Buffer>;
+
+  consoleExec(javascript: string): Promise<ToolResult<unknown>>;
+
+  consoleView(maxLines?: number): Promise<ToolResult<string[]>>;
+}
