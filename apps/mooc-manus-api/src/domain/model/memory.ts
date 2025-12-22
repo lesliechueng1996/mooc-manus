@@ -1,4 +1,4 @@
-import type { Logger } from '@/infrasturcture/logging';
+import type { Logger } from '@/infrastructure/logging';
 
 type ToolMessage = {
   role: 'tool';

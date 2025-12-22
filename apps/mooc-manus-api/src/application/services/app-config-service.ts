@@ -3,8 +3,8 @@ import type {
   LlmConfig,
   McpConfig,
 } from '@/domain/model/app-config';
-import type { Logger } from '@/infrasturcture/logging';
-import { DbAppConfigRepository } from '@/infrasturcture/repository/db-app-config-repository';
+import type { Logger } from '@/infrastructure/logging';
+import { DbAppConfigRepository } from '@/infrastructure/repository/db-app-config-repository';
 
 export class AppConfigService {
   private readonly appConfigRepository: DbAppConfigRepository;
