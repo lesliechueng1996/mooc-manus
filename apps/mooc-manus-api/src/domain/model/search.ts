@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const searchResultItemSchema = z.object({
+export const searchResultItemSchema = z.object({
   url: z.string(),
   title: z.string(),
   snippet: z.string().default(''),
@@ -8,7 +8,7 @@ const searchResultItemSchema = z.object({
 
 export type SearchResultItem = z.infer<typeof searchResultItemSchema>;
 
-const searchResultsSchema = z.object({
+export const searchResultsSchema = z.object({
   query: z.string(),
   dataRange: z.string().nullable().default(null),
   totalResults: z.int().default(0),

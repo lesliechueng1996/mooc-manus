@@ -6,7 +6,7 @@ export interface Task {
   inputStream: MessageQueue;
   outputStream: MessageQueue;
   id: string;
-  done: () => boolean;
+  done: boolean;
   taskRunner: TaskRunner;
 }
 

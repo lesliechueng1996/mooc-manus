@@ -1,4 +1,5 @@
 import z from 'zod';
+import { McpTransport } from '@/domain/model/app-config';
 import { createSuccessResponseSchema } from './common';
 
 export const getLlmConfigResponseSchema = createSuccessResponseSchema(
@@ -109,4 +110,89 @@ export const updateAgentConfigResponseSchema = createSuccessResponseSchema(
       .describe('The maximum number of search results the Agent can return')
       .default(10),
   }),
+);
+
+export const getMcpServersResponseSchema = createSuccessResponseSchema(
+  z.object({
+    mcpServers: z.array(
+      z.object({
+        serverName: z.string().describe('The name of the MCP server'),
+        enabled: z.boolean().describe('Whether the MCP server is enabled'),
+        transport: z
+          .string()
+          .describe(
+            'The transport of the MCP server, one of stdio, sse, streamable_http',
+          ),
+        tools: z.array(z.string()).describe('The tools of the MCP server'),
+      }),
+    ),
+  }),
+);
+
+// Base schema with common fields
+const mcpServerBaseSchema = z.object({
+  enabled: z.boolean().default(true),
+  description: z.string().nullable().default(null),
+  env: z.record(z.string(), z.string()).nullable().default(null),
+});
+
+// Schema for stdio transport
+const mcpServerStdioSchema = mcpServerBaseSchema.extend({
+  transport: z.literal(McpTransport.STDIO),
+  command: z.string(),
+  args: z.array(z.string()),
+});
+
+// Schema for HTTP-based transports (sse, streamable_http)
+const mcpServerHttpSchema = mcpServerBaseSchema.extend({
+  transport: z.enum([McpTransport.SSE, McpTransport.STREAMABLE_HTTP]),
+  url: z.url(),
+  headers: z.record(z.string(), z.string()).nullable().default(null),
+});
+
+// Combined schema using discriminated union
+const mcpServerConfigSchemaBase = z.discriminatedUnion('transport', [
+  mcpServerStdioSchema,
+  mcpServerHttpSchema,
+]);
+
+// Add default transport as stdio when transport is missing
+const mcpServerConfigSchema = z.preprocess((data) => {
+  if (
+    data &&
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    !('transport' in data)
+  ) {
+    return { ...data, transport: McpTransport.STREAMABLE_HTTP };
+  }
+  return data;
+}, mcpServerConfigSchemaBase);
+
+export const updateMcpServersRequestSchema = z.object({
+  mcpServers: z.record(z.string(), mcpServerConfigSchema).default({}),
+});
+
+export const updateMcpServersResponseSchema = createSuccessResponseSchema(
+  z.object({}),
+);
+
+export const deleteMcpServerRequestSchema = z.object({
+  serverName: z.string().describe('The name of the MCP server to delete'),
+});
+
+export const deleteMcpServerResponseSchema = createSuccessResponseSchema(
+  z.object({}),
+);
+
+export const updateMcpServerEnabledRequestBodySchema = z.object({
+  enabled: z.boolean().describe('Whether the MCP server is enabled'),
+});
+
+export const updateMcpServerEnabledRequestParamchema = z.object({
+  serverName: z.string().describe('The name of the MCP server to delete'),
+});
+
+export const updateMcpServerEnabledResponseSchema = createSuccessResponseSchema(
+  z.object({}),
 );

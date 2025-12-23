@@ -25,6 +25,13 @@ export class Logger {
     );
   }
 
+  public warn(message: string, data: Record<string, unknown> = {}) {
+    this.logger.warn(
+      `Request ID: {requestId} - User ID: {userId} - ${message}`,
+      { ...data, requestId: this.requestId, userId: this.userId },
+    );
+  }
+
   public error(message: string, data: Record<string, unknown> = {}) {
     let formattedMessage = `Request ID: {requestId} - User ID: {userId} - ${message}`;
     if ('error' in data) {

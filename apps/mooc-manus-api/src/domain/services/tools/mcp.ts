@@ -104,11 +104,7 @@ export class McpClientManager {
       const cacheKey = this.getCacheKey();
       const toolsObj = Object.fromEntries(this.tools);
       // Cache for 24 hours, but will be invalidated on config update
-      await this.redisClient.setWithExpiry(
-        cacheKey,
-        JSON.stringify(toolsObj),
-        86400,
-      );
+      await this.redisClient.setex(cacheKey, 86400, JSON.stringify(toolsObj));
     } catch (error) {
       this.logger.error('Failed to cache MCP tools to Redis', { error });
     }

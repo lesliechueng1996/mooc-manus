@@ -11,14 +11,4 @@ export const fileSchema = z.object({
   size: z.int().default(0),
 });
 
-// type FileProps = z.infer<typeof fileSchema>;
-
-// export class File {
-//   constructor(private readonly props: FileProps) {}
-
-//   get id() {
-//     return this.props.id;
-//   }
-
-//   static schema = fileSchema.transform((data) => new File(data));
-// }
+export type File = z.infer<typeof fileSchema>;
