@@ -1,6 +1,6 @@
 {
   "name": "mooc-manus-api",
-  "version": "1.0.50",
+  "version": "1.0.0",
   "scripts": {
     "dev": "bun run --inspect --watch src/index.ts",
     "lint": "biome check",

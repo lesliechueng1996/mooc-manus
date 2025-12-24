@@ -1,0 +1,16 @@
+{
+  "name": "mooc-manus-sandbox",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun run --inspect --watch src/index.ts",
+    "lint": "biome check",
+    "format": "biome check --write"
+  },
+  "dependencies": {
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "module": "src/index.js"
+}

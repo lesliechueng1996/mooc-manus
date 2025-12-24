@@ -13,7 +13,7 @@
     },
     "apps/mooc-manus-api": {
       "name": "mooc-manus-api",
-      "version": "1.0.50",
+      "version": "1.0.0",
       "dependencies": {
         "@elysiajs/openapi": "^1.4.12",
         "@modelcontextprotocol/sdk": "^1.25.1",
@@ -33,9 +33,19 @@
         "bun-types": "latest",
       },
     },
+    "apps/mooc-manus-sandbox": {
+      "name": "mooc-manus-sandbox",
+      "version": "1.0.0",
+      "dependencies": {
+        "elysia": "latest",
+      },
+      "devDependencies": {
+        "bun-types": "latest",
+      },
+    },
     "apps/mooc-manus-ui": {
       "name": "mooc-manus-ui",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
         "@hookform/resolvers": "^5.2.2",
         "@radix-ui/react-avatar": "^1.1.11",
@@ -1170,6 +1180,8 @@
     "mitt": ["mitt@3.0.1", "", {}, "sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw=="],
 
     "mooc-manus-api": ["mooc-manus-api@workspace:apps/mooc-manus-api"],
+
+    "mooc-manus-sandbox": ["mooc-manus-sandbox@workspace:apps/mooc-manus-sandbox"],
 
     "mooc-manus-ui": ["mooc-manus-ui@workspace:apps/mooc-manus-ui"],
 
