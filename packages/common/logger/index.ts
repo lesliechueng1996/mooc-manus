@@ -22,7 +22,7 @@ export const createUILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
     loggers: [
       {
         category: 'mooc-manus-ui',
-        lowestLevel: logLevel,
+        lowestLevel: logLevel.toLowerCase() as LogLevel,
         sinks: ['console', 'file'],
       },
     ],
@@ -42,7 +42,29 @@ export const createAPILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
     loggers: [
       {
         category: 'mooc-manus-api',
-        lowestLevel: logLevel,
+        lowestLevel: logLevel.toLowerCase() as LogLevel,
+        sinks: ['console', 'file'],
+      },
+    ],
+  });
+};
+
+export const createSandboxLoggerConfiguration = (
+  logLevel: LogLevel = 'debug',
+) => {
+  loggerName = 'mooc-manus-sandbox';
+  return configure({
+    sinks: {
+      console: getConsoleSink(),
+      file: getRotatingFileSink('mooc-manus-sandbox.log', {
+        maxSize: 1024 * 1024 * 5,
+        maxFiles: 5,
+      }),
+    },
+    loggers: [
+      {
+        category: 'mooc-manus-sandbox',
+        lowestLevel: logLevel.toLowerCase() as LogLevel,
         sinks: ['console', 'file'],
       },
     ],

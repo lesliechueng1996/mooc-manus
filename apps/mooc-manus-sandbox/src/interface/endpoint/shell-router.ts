@@ -1,3 +1,7 @@
-import { Elysia } from "elysia";
+import { Elysia } from 'elysia';
 
-export const shellRouter = new Elysia({ name: 'shell-router', prefix: '/shell', tags: ['Shell'] })
+export const shellRouter = new Elysia({
+  name: 'shell-router',
+  prefix: '/shell',
+  tags: ['Shell'],
+});

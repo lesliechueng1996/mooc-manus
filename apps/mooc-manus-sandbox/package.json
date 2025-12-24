@@ -7,7 +7,10 @@
     "format": "biome check --write"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@elysiajs/openapi": "^1.4.12",
+    "@repo/common": "workspace:*",
+    "elysia": "latest",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "bun-types": "latest"

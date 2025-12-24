@@ -1,3 +1,7 @@
-import { Elysia } from "elysia";
+import { Elysia } from 'elysia';
 
-export const fileRouter = new Elysia({ name: 'file-router', prefix: '/file', tags: ['File'] })
+export const fileRouter = new Elysia({
+  name: 'file-router',
+  prefix: '/file',
+  tags: ['File'],
+});

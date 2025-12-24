@@ -15,7 +15,7 @@ import { logger as loggerPlugin } from './interface/plugin/logger';
 import { requestId } from './interface/plugin/request-id';
 import { userId } from './interface/plugin/user-id';
 
-await createAPILoggerConfiguration(Bun.env.LOG_LEVEL as LogLevel);
+await createAPILoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
 const logger = getLogger();
 
 const apiRouter = new Elysia().group(
@@ -73,7 +73,6 @@ const app = new Elysia()
           version: '1.0.0',
           description: 'Mooc Manus API',
         },
-        tags: [{ name: 'App Config', description: 'App Config API' }],
       },
     }),
   )
@@ -81,5 +80,5 @@ const app = new Elysia()
   .listen(8080);
 
 logger.info(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
+  `🦊 Mooc Manus API is running at ${app.server?.hostname}:${app.server?.port}`,
 );
