@@ -131,23 +131,38 @@ export const getMcpServersResponseSchema = createSuccessResponseSchema(
 
 // Base schema with common fields
 const mcpServerBaseSchema = z.object({
-  enabled: z.boolean().default(true),
-  description: z.string().nullable().default(null),
-  env: z.record(z.string(), z.string()).nullable().default(null),
+  enabled: z
+    .boolean()
+    .default(true)
+    .describe('Whether the MCP server is enabled'),
+  description: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe('The description of the MCP server'),
+  env: z
+    .record(z.string(), z.string())
+    .nullable()
+    .default(null)
+    .describe('The environment variables to set for the MCP server'),
 });
 
 // Schema for stdio transport
 const mcpServerStdioSchema = mcpServerBaseSchema.extend({
   transport: z.literal(McpTransport.STDIO),
-  command: z.string(),
-  args: z.array(z.string()),
+  command: z.string().describe('The command to run the MCP server'),
+  args: z.array(z.string()).describe('The arguments to pass to the command'),
 });
 
 // Schema for HTTP-based transports (sse, streamable_http)
 const mcpServerHttpSchema = mcpServerBaseSchema.extend({
   transport: z.enum([McpTransport.SSE, McpTransport.STREAMABLE_HTTP]),
-  url: z.url(),
-  headers: z.record(z.string(), z.string()).nullable().default(null),
+  url: z.url().describe('The URL of the MCP server'),
+  headers: z
+    .record(z.string(), z.string())
+    .nullable()
+    .default(null)
+    .describe('The headers to send to the MCP server'),
 });
 
 // Combined schema using discriminated union
@@ -170,7 +185,10 @@ const mcpServerConfigSchema = z.preprocess((data) => {
 }, mcpServerConfigSchemaBase);
 
 export const updateMcpServersRequestSchema = z.object({
-  mcpServers: z.record(z.string(), mcpServerConfigSchema).default({}),
+  mcpServers: z
+    .record(z.string(), mcpServerConfigSchema)
+    .default({})
+    .describe('The MCP servers to update'),
 });
 
 export const updateMcpServersResponseSchema = createSuccessResponseSchema(

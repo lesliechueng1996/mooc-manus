@@ -12,6 +12,7 @@ import { httpLog } from './interface/plugin/http-log';
 import { logger as loggerPlugin } from './interface/plugin/logger';
 import { requestId } from './interface/plugin/request-id';
 import { userId } from './interface/plugin/user-id';
+import { statusRouter } from './interface/endpoint/status-router';
 
 await createAPILoggerConfiguration();
 const logger = getLogger();
@@ -53,7 +54,8 @@ const apiRouter = new Elysia().group(
         logger.info('Hello Elysia');
         return 'Hello Elysia';
       })
-      .use(appConfigRouter);
+      .use(appConfigRouter)
+      .use(statusRouter);
   },
 );
 
@@ -75,7 +77,7 @@ const app = new Elysia()
     }),
   )
   .use(apiRouter)
-  .listen(3000);
+  .listen(8080);
 
 logger.info(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
