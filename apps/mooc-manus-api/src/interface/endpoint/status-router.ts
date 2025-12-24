@@ -5,6 +5,7 @@ import { logger as loggerPlugin } from '../plugin/logger';
 import { getStatusResponseSchema } from '../schema/status-schema';
 
 export const statusRouter = new Elysia({
+  name: 'status-router',
   prefix: '/status',
   tags: ['Status'],
 })

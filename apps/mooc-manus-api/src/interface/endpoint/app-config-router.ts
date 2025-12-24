@@ -21,6 +21,7 @@ import {
 } from '../schema/app-config-schema';
 
 export const appConfigRouter = new Elysia({
+  name: 'app-config-router',
   prefix: '/app-config',
   tags: ['App Config'],
 })
