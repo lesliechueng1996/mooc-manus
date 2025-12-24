@@ -4,6 +4,7 @@ import {
   createAPILoggerConfiguration,
   createErrorResponse,
   getLogger,
+  type LogLevel,
 } from '@repo/common';
 import { Elysia } from 'elysia';
 import { z } from 'zod';
@@ -14,7 +15,7 @@ import { logger as loggerPlugin } from './interface/plugin/logger';
 import { requestId } from './interface/plugin/request-id';
 import { userId } from './interface/plugin/user-id';
 
-await createAPILoggerConfiguration();
+await createAPILoggerConfiguration(Bun.env.LOG_LEVEL as LogLevel);
 const logger = getLogger();
 
 const apiRouter = new Elysia().group(

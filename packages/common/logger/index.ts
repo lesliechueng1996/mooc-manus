@@ -7,7 +7,9 @@ import {
 
 let loggerName = 'mooc-manus-api';
 
-export const createUILoggerConfiguration = () => {
+export type LogLevel = 'debug' | 'info' | 'warning' | 'error';
+
+export const createUILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
   loggerName = 'mooc-manus-ui';
   return configure({
     sinks: {
@@ -20,14 +22,14 @@ export const createUILoggerConfiguration = () => {
     loggers: [
       {
         category: 'mooc-manus-ui',
-        lowestLevel: 'debug',
+        lowestLevel: logLevel,
         sinks: ['console', 'file'],
       },
     ],
   });
 };
 
-export const createAPILoggerConfiguration = () => {
+export const createAPILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
   loggerName = 'mooc-manus-api';
   return configure({
     sinks: {
@@ -40,7 +42,7 @@ export const createAPILoggerConfiguration = () => {
     loggers: [
       {
         category: 'mooc-manus-api',
-        lowestLevel: 'debug',
+        lowestLevel: logLevel,
         sinks: ['console', 'file'],
       },
     ],
