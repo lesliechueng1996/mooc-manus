@@ -18,11 +18,12 @@ import { userId } from './interface/plugin/user-id';
 await createAPILoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
 const logger = getLogger();
 
-const apiRouter = new Elysia().group(
+const apiRouter = new Elysia({ name: 'api-router' }).group(
   '/api',
   {
     headers: z.object({
       'x-user-id': z.string(),
+      'x-request-id': z.string().optional(),
     }),
   },
   (app) => {
