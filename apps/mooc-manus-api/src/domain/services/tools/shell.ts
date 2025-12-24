@@ -1,5 +1,5 @@
 import type { Sandbox } from '@/domain/external/sandbox';
-import { tool, ToolCollection } from './base';
+import { ToolCollection, tool } from './base';
 
 export class ShellToolCollection extends ToolCollection {
   constructor(private readonly sandbox: Sandbox) {
