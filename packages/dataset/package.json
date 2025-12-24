@@ -1,20 +1,20 @@
 {
   "name": "@repo/dataset",
-  "version": "1.0.0",
-  "description": "",
+  "module": "index.ts",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
+  "private": true,
   "scripts": {
     "lint": "biome check",
     "format": "biome check --write"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@repo/prisma-database": "workspace:*",
-    "@repo/api-schema": "workspace:*"
+    "@repo/common": "workspace:*",
+    "@repo/prisma-database": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

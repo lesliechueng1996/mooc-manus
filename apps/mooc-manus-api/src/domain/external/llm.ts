@@ -1,11 +1,11 @@
-export type LlmClient = {
+export interface LlmClient {
   modelName: string;
   temperature: number;
   maxTokens: number;
-  invoke: (data: {
+  invoke(data: {
     messages: Array<Record<string, unknown>>;
     tools?: Array<Record<string, unknown>>;
     responseFormat?: Record<string, unknown>;
     toolChoice?: string;
-  }) => Promise<Record<string, unknown>>;
-};
+  }): Promise<Record<string, unknown>>;
+}

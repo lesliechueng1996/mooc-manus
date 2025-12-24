@@ -1,10 +1,12 @@
+import { type Event, PlanEvent, PlanEventStatus } from '@/domain/model/event';
+import type { Message } from '@/domain/model/message';
 import {
-  createPlanEvent,
-  type Event,
-  PlanEventStatus,
-} from '@/domain/models/event';
-import type { Message } from '@/domain/models/message';
-import { Plan, type Step } from '@/domain/models/plan';
+  cloneStep,
+  isStepDone,
+  type Plan,
+  planSchema,
+  type Step,
+} from '@/domain/model/plan';
 import {
   formatCreatePlanPrompt,
   formatUpdatePlanPrompt,
@@ -30,14 +32,13 @@ export class PlannerAgent extends BaseAgent {
     for await (const event of this.invoke(query)) {
       if (event.type === 'message') {
         this.logger.info(
-          { message: event.message },
-          'Planner agent generated plan',
+          `Planner agent generated plan, message: ${event.message}`,
         );
 
-        const parsedJson = this.parseJson(event.message);
-        const plan = Plan.schema.parse(parsedJson);
+        const parsedJson = this.jsonParser.parse(event.message);
+        const plan = planSchema.parse(parsedJson);
 
-        yield createPlanEvent({
+        yield new PlanEvent({
           plan,
           status: PlanEventStatus.CREATED,
         });
@@ -56,17 +57,16 @@ export class PlannerAgent extends BaseAgent {
     for await (const event of this.invoke(query)) {
       if (event.type === 'message') {
         this.logger.info(
-          { message: event.message },
-          'Planner agent updated plan',
+          `Planner agent updated plan, message: ${event.message}`,
         );
 
-        const parsedJson = this.parseJson(event.message);
-        const updatePlan = Plan.schema.parse(parsedJson);
+        const parsedJson = this.jsonParser.parse(event.message);
+        const updatePlan = planSchema.parse(parsedJson);
 
-        const newSteps = updatePlan.steps.map((step) => step.clone());
+        const newSteps = updatePlan.steps.map((step) => cloneStep(step));
 
         const firstUnfinishedIndex = plan.steps.findIndex(
-          (step) => !step.isDone(),
+          (step) => !isStepDone(step),
         );
 
         if (firstUnfinishedIndex >= 0) {
@@ -76,7 +76,7 @@ export class PlannerAgent extends BaseAgent {
           plan.steps = updatedSteps;
         }
 
-        yield createPlanEvent({
+        yield new PlanEvent({
           plan,
           status: PlanEventStatus.UPDATED,
         });

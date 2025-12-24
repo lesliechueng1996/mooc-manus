@@ -1,6 +1,6 @@
-import type { HealthStatus } from '../models/health-status';
+import type { HealthStatus } from '../model/health-status';
 
-export type HealthChecker = {
+export interface HealthChecker {
   service: string;
-  check: () => Promise<HealthStatus>;
-};
+  check(): Promise<HealthStatus>;
+}

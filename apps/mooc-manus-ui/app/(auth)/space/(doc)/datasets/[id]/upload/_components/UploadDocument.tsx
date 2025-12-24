@@ -1,6 +1,6 @@
 'use client';
 
-import COS from 'cos-js-sdk-v5';
+import { uploadFileWithProgress } from '@repo/tencent-cos/browser';
 import { FileBox, UploadIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -39,42 +39,16 @@ const uploadFile = async (
 
   const { credential, key, bucket } = res.data;
 
-  const cos = new COS({
-    SecretId: credential.tmpSecretId,
-    SecretKey: credential.tmpSecretKey,
-    SecurityToken: credential.sessionToken,
-    StartTime: credential.startTime,
-    ExpiredTime: credential.expiredTime,
-  });
-
-  return new Promise<UploadFileResult>((resolve, reject) => {
-    cos.uploadFile(
-      {
-        Bucket: bucket.name,
-        Region: bucket.region,
-        Key: key,
-        Body: file,
-        onProgress: (progress) => {
-          onProgress(progress.percent);
-        },
-      },
-      (err, data) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        resolve({
-          name: file.name,
-          key: data.Location,
-          size: file.size,
-          extension: file.name.split('.').pop() ?? '',
-          mimeType: file.type,
-          hash: data.ETag?.replace(/^"|"$/g, '') ?? '',
-        });
-      },
-    );
-  });
+  return uploadFileWithProgress(
+    credential,
+    {
+      bucket: bucket.name,
+      region: bucket.region,
+      key: key,
+      file: file,
+    },
+    onProgress,
+  );
 };
 
 type Props = {

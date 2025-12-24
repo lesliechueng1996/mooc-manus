@@ -1,4 +1,4 @@
-import type { PaginationResult } from '@repo/api-schema';
+import type { PaginationResult } from '@repo/common';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { parseAsString, useQueryState } from 'nuqs';
 import { useEffect } from 'react';

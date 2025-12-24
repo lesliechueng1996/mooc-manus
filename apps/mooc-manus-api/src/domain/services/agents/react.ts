@@ -1,14 +1,19 @@
 import {
-  createMessageEvent,
-  createStepEvent,
-  createWaitEvent,
   type Event,
+  MessageEvent,
+  StepEvent,
   StepEventStatus,
   ToolEventStatus,
-} from '@/domain/models/event';
-import { File } from '@/domain/models/file';
-import { Message } from '@/domain/models/message';
-import { ExecutionStatus, type Plan, Step } from '@/domain/models/plan';
+  WaitEvent,
+} from '@/domain/model/event';
+import { fileSchema } from '@/domain/model/file';
+import { type Message, messageSchema } from '@/domain/model/message';
+import {
+  ExecutionStatus,
+  type Plan,
+  type Step,
+  stepSchema,
+} from '@/domain/model/plan';
 import {
   formatExecuteStepPrompt,
   reactSystemPrompt,
@@ -35,7 +40,7 @@ export class ReActAgent extends BaseAgent {
     );
 
     step.status = ExecutionStatus.RUNNING;
-    yield createStepEvent({
+    yield new StepEvent({
       step,
       status: StepEventStatus.STARTED,
     });
@@ -44,33 +49,33 @@ export class ReActAgent extends BaseAgent {
       if (event.type === 'tool') {
         if (event.functionName === 'message_ask_user') {
           if (event.status === ToolEventStatus.CALLING) {
-            yield createMessageEvent({
+            yield new MessageEvent({
               role: 'assistant',
               // TODO, wait implement message ask user tool
               message: event.functionArguments.text as string,
             });
           } else if (event.status === ToolEventStatus.CALLED) {
-            yield createWaitEvent();
+            yield new WaitEvent();
             return;
           }
           continue;
         }
       } else if (event.type === 'message') {
         step.status = ExecutionStatus.COMPLETED;
-        const parsedObj = this.parseJson(event.message);
-        const newStep = Step.schema.parse(parsedObj);
+        const parsedObj = this.jsonParser.parse(event.message);
+        const newStep = stepSchema.parse(parsedObj);
 
         step.success = newStep.success;
         step.result = newStep.result;
         step.attachments = newStep.attachments;
 
-        yield createStepEvent({
+        yield new StepEvent({
           step,
           status: StepEventStatus.COMPLETED,
         });
 
         if (step.result) {
-          yield createMessageEvent({
+          yield new MessageEvent({
             role: 'assistant',
             message: step.result,
           });
@@ -80,7 +85,7 @@ export class ReActAgent extends BaseAgent {
         step.status = ExecutionStatus.FAILED;
         step.error = event.error;
 
-        yield createStepEvent({
+        yield new StepEvent({
           step,
           status: StepEventStatus.FAILED,
         });
@@ -97,18 +102,18 @@ export class ReActAgent extends BaseAgent {
 
     for await (const event of this.invoke(query)) {
       if (event.type === 'message') {
-        this.logger.info({ message: event.message }, 'ReAct agent summarized');
-        const parsedObj = this.parseJson(event.message);
+        this.logger.info(`ReAct agent summarized, message: ${event.message}`);
+        const parsedObj = this.jsonParser.parse(event.message);
 
-        const newMessage = Message.schema.parse(parsedObj);
+        const newMessage = messageSchema.parse(parsedObj);
 
         const attachments = newMessage.attachments.map((attachment) =>
-          File.schema.parse({
+          fileSchema.parse({
             filepath: attachment,
           }),
         );
 
-        yield createMessageEvent({
+        yield new MessageEvent({
           role: 'assistant',
           message: newMessage.message,
           attachments,

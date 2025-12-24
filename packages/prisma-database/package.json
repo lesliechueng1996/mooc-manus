@@ -1,27 +1,25 @@
 {
   "name": "@repo/prisma-database",
-  "version": "1.0.0",
-  "description": "",
+  "module": "index.ts",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
+  "private": true,
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev --skip-generate",
-    "db:deploy": "prisma migrate deploy",
+    "db:migrate": "bunx --bun prisma migrate dev",
+    "db:generate": "bunx --bun prisma generate",
     "lint": "biome check",
     "format": "biome check --write"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^6.19.0"
-  },
   "devDependencies": {
-    "prisma": "^6.19.0",
-    "@types/node": "^20.11.17",
-    "typescript": "^5.8.3"
+    "@types/bun": "latest",
+    "@types/pg": "^8.16.0",
+    "prisma": "^7.2.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "pg": "^8.16.3"
   }
 }

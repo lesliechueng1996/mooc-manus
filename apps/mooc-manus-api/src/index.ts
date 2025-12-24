@@ -1,78 +1,84 @@
-import { serve } from '@hono/node-server';
-import { contextStorage } from 'hono/context-storage';
-import { cors } from 'hono/cors';
-import { requestId } from 'hono/request-id';
-import { NotFoundException } from './application/error/exception';
-import { PuppeteerBingSearch } from './infrasturcture/external/search/puppeteer-bing-search';
-import { logger, loggerMiddleware } from './infrasturcture/logging/index';
-import { connectCos, destroyCosClient } from './infrasturcture/storage/cos';
-import { connectRedis, disconnectRedis } from './infrasturcture/storage/redis';
-import appConfigRouter from './interface/endpoint/app-config-router';
-import { createApiRouter } from './interface/endpoint/router';
-import statusRouter from './interface/endpoint/status-router';
-import { exceptionHandler } from './interface/error/exception-handler';
-import { userIdMiddleware } from './interface/middleware/user-id-middleware';
+import { fromTypes, openapi } from '@elysiajs/openapi';
+import {
+  BaseException,
+  createAPILoggerConfiguration,
+  createErrorResponse,
+  getLogger,
+} from '@repo/common';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
+import { appConfigRouter } from '@/interface/endpoint/app-config-router';
+import { httpLog } from './interface/plugin/http-log';
+import { logger as loggerPlugin } from './interface/plugin/logger';
+import { requestId } from './interface/plugin/request-id';
+import { userId } from './interface/plugin/user-id';
+import { statusRouter } from './interface/endpoint/status-router';
 
-const app = createApiRouter();
+await createAPILoggerConfiguration();
+const logger = getLogger();
 
-app.use(requestId());
-app.use(loggerMiddleware);
-app.use(userIdMiddleware);
-app.use(contextStorage());
-app.use(
-  '/api/*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
-    allowHeaders: ['*'],
-    credentials: true,
-  }),
-);
-app.notFound(() => {
-  throw new NotFoundException();
-});
-app.onError(exceptionHandler);
-
-app.get('/', async (c) => {
-  c.var.logger.info('Hello Hono!');
-  // const messageQueue = createRedisStreamMessageQueue('test');
-  // await messageQueue.put({ data: 'test' });
-  // const message = await messageQueue.pop();
-  // c.var.logger.info(`message: ${JSON.stringify(message)}`);
-  const bingSearch = new PuppeteerBingSearch();
-  const result = await bingSearch.search('小米股价', 'past_month');
-  console.log(result);
-
-  if (result.success && result.data) {
-    for (const item of result.data.results) {
-      console.log(item.url, item.title, item.snippet);
-    }
-  }
-  return c.text('Hello Hono!');
-});
-
-const apiRouter = createApiRouter();
-
-apiRouter.route('/status', statusRouter);
-apiRouter.route('/app-config', appConfigRouter);
-
-app.route('/api', apiRouter);
-
-await connectRedis();
-connectCos();
-
-serve(
+const apiRouter = new Elysia().group(
+  '/api',
   {
-    fetch: app.fetch,
-    port: 8000,
+    headers: z.object({
+      'x-user-id': z.string(),
+    }),
   },
-  (info) => {
-    logger.info(`Server is running on http://localhost:${info.port}`);
+  (app) => {
+    return app
+      .use(loggerPlugin)
+      .use(requestId)
+      .use(httpLog)
+      .use(userId)
+      .onError(({ code, error, status, logger }) => {
+        if (code === 'VALIDATION') {
+          logger.error('Validation error occurred', { error });
+          return status(
+            400,
+            createErrorResponse(400, JSON.parse(error.message).summary),
+          );
+        }
+
+        if (error instanceof BaseException) {
+          logger.error('App error occurred', { error });
+          return status(
+            error.code,
+            createErrorResponse(error.code, error.message),
+          );
+        }
+
+        logger.error('Unhandled error occurred', { error });
+        return status(500, createErrorResponse(500, 'Internal server error'));
+      })
+      .get('/', ({ logger }) => {
+        logger.info('Hello Elysia');
+        return 'Hello Elysia';
+      })
+      .use(appConfigRouter)
+      .use(statusRouter);
   },
 );
 
-process.on('SIGINT', async () => {
-  await disconnectRedis();
-  destroyCosClient();
-  process.exit(0);
-});
+const app = new Elysia()
+  .use(
+    openapi({
+      references: fromTypes(),
+      mapJsonSchema: {
+        zod: z.toJSONSchema,
+      },
+      documentation: {
+        info: {
+          title: 'Mooc Manus API',
+          version: '1.0.0',
+          description: 'Mooc Manus API',
+        },
+        tags: [{ name: 'App Config', description: 'App Config API' }],
+      },
+    }),
+  )
+  .use(apiRouter)
+  .listen(8080);
+
+logger.info(
+  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
+);

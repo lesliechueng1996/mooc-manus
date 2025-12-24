@@ -1,4 +1,4 @@
-import type { ToolResult } from '../models/tool-result';
+import type { ToolResult } from '../model/tool-result';
 
 export type Position = {
   x: number;

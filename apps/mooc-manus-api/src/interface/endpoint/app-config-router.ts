@@ -1,98 +1,176 @@
+import { createSuccessResponse } from '@repo/common';
+import { Elysia } from 'elysia';
+import { AppConfigService } from '@/application/services/app-config-service';
+import { logger as loggerPlugin } from '../plugin/logger';
+import { userId } from '../plugin/user-id';
 import {
-  createSuccessResponse,
+  deleteMcpServerRequestSchema,
+  deleteMcpServerResponseSchema,
+  getAgentConfigResponseSchema,
+  getLlmConfigResponseSchema,
+  getMcpServersResponseSchema,
   updateAgentConfigRequestSchema,
+  updateAgentConfigResponseSchema,
   updateLlmConfigRequestSchema,
-  updateMcpServerEnabledRequestSchema,
+  updateLlmConfigResponseSchema,
+  updateMcpServerEnabledRequestBodySchema,
+  updateMcpServerEnabledRequestParamchema,
+  updateMcpServerEnabledResponseSchema,
   updateMcpServersRequestSchema,
-} from '@repo/api-schema';
-import {
-  deleteMcpServer,
-  getAgentConfig,
-  getLlmConfig,
-  getMcpServers,
-  setMcpServerEnabled,
-  updateAgentConfig,
-  updateLlmConfig,
-  updateOrCreateMcpServers,
-} from '@/application/services/app-config-service';
-import { createApiRouter } from './router';
-import { zValidator } from './validator';
+  updateMcpServersResponseSchema,
+} from '../schema/app-config-schema';
 
-const appConfigRouter = createApiRouter();
-
-appConfigRouter.get('/llm', async (c) => {
-  const llmConfig = await getLlmConfig(c.var.userId);
-  const { apiKey: _apiKey, ...configWithoutApiKey } = llmConfig;
-  return c.json(createSuccessResponse(configWithoutApiKey));
-});
-
-appConfigRouter.put(
-  '/llm',
-  zValidator('json', updateLlmConfigRequestSchema),
-  async (c) => {
-    const llmConfig = c.req.valid('json');
-    const updatedLlmConfig = await updateLlmConfig(c.var.userId, llmConfig);
-    const { apiKey: _apiKey, ...configWithoutApiKey } = updatedLlmConfig;
-    return c.json(createSuccessResponse(configWithoutApiKey));
-  },
-);
-
-appConfigRouter.get('/agent', async (c) => {
-  const agentConfig = await getAgentConfig(c.var.userId);
-  return c.json(createSuccessResponse(agentConfig));
-});
-
-appConfigRouter.put(
-  '/agent',
-  zValidator('json', updateAgentConfigRequestSchema),
-  async (c) => {
-    const agentConfig = c.req.valid('json');
-    const updatedAgentConfig = await updateAgentConfig(
-      c.var.userId,
-      agentConfig,
-    );
-    return c.json(createSuccessResponse(updatedAgentConfig));
-  },
-);
-
-appConfigRouter.get('/mcp-servers', async (c) => {
-  const mcpServers = await getMcpServers(c.var.userId);
-  return c.json(
-    createSuccessResponse({
-      mcpServers,
-    }),
+export const appConfigRouter = new Elysia({
+  prefix: '/app-config',
+  tags: ['App Config'],
+})
+  .use(loggerPlugin)
+  .use(userId)
+  .get(
+    '/llm',
+    async ({ logger, userId }) => {
+      const appConfigService = new AppConfigService(logger);
+      const llmConfig = await appConfigService.getLlmConfig(userId);
+      const { apiKey: _apiKey, ...configWithoutApiKey } = llmConfig;
+      return createSuccessResponse(configWithoutApiKey);
+    },
+    {
+      response: {
+        200: getLlmConfigResponseSchema,
+      },
+      detail: {
+        summary: 'Get LLM config',
+      },
+    },
+  )
+  .put(
+    '/llm',
+    async ({ body, userId, logger }) => {
+      const appConfigService = new AppConfigService(logger);
+      const updatedLlmConfig = await appConfigService.updateLlmConfig(
+        userId,
+        body,
+      );
+      const { apiKey: _apiKey, ...configWithoutApiKey } = updatedLlmConfig;
+      return createSuccessResponse(configWithoutApiKey);
+    },
+    {
+      body: updateLlmConfigRequestSchema,
+      response: {
+        200: updateLlmConfigResponseSchema,
+      },
+      detail: {
+        summary: 'Update LLM config',
+      },
+    },
+  )
+  .get(
+    '/agent',
+    async ({ userId, logger }) => {
+      const appConfigService = new AppConfigService(logger);
+      const agentConfig = await appConfigService.getAgentConfig(userId);
+      return createSuccessResponse(agentConfig);
+    },
+    {
+      response: {
+        200: getAgentConfigResponseSchema,
+      },
+      detail: {
+        summary: 'Get Agent config',
+      },
+    },
+  )
+  .put(
+    '/agent',
+    async ({ body, userId, logger }) => {
+      const appConfigService = new AppConfigService(logger);
+      const updatedAgentConfig = await appConfigService.updateAgentConfig(
+        userId,
+        body,
+      );
+      return createSuccessResponse(updatedAgentConfig);
+    },
+    {
+      body: updateAgentConfigRequestSchema,
+      response: {
+        200: updateAgentConfigResponseSchema,
+      },
+      detail: {
+        summary: 'Update Agent config',
+      },
+    },
+  )
+  .get(
+    '/mcp-servers',
+    async ({ logger, userId }) => {
+      const appConfigService = new AppConfigService(logger);
+      const mcpServers = await appConfigService.getMcpServers(userId);
+      return createSuccessResponse({
+        mcpServers,
+      });
+    },
+    {
+      response: {
+        200: getMcpServersResponseSchema,
+      },
+      detail: {
+        summary: 'Get MCP servers',
+      },
+    },
+  )
+  .post(
+    '/mcp-servers',
+    async ({ body, userId, logger }) => {
+      const appConfigService = new AppConfigService(logger);
+      await appConfigService.updateOrCreateMcpServers(userId, body);
+      return createSuccessResponse({});
+    },
+    {
+      body: updateMcpServersRequestSchema,
+      response: {
+        200: updateMcpServersResponseSchema,
+      },
+      detail: {
+        summary: 'Update or create MCP servers',
+      },
+    },
+  )
+  .delete(
+    '/mcp-servers/:serverName',
+    async ({ params: { serverName }, userId, logger }) => {
+      const appConfigService = new AppConfigService(logger);
+      await appConfigService.deleteMcpServer(userId, serverName);
+      return createSuccessResponse({});
+    },
+    {
+      params: deleteMcpServerRequestSchema,
+      response: {
+        200: deleteMcpServerResponseSchema,
+      },
+      detail: {
+        summary: 'Delete MCP server',
+      },
+    },
+  )
+  .patch(
+    '/mcp-servers/:serverName/enabled',
+    async ({ params: { serverName }, body, userId, logger }) => {
+      const appConfigService = new AppConfigService(logger);
+      await appConfigService.setMcpServerEnabled(
+        userId,
+        serverName,
+        body.enabled,
+      );
+      return createSuccessResponse({});
+    },
+    {
+      params: updateMcpServerEnabledRequestParamchema,
+      body: updateMcpServerEnabledRequestBodySchema,
+      response: {
+        200: updateMcpServerEnabledResponseSchema,
+      },
+      detail: {
+        summary: 'Update MCP server enabled',
+      },
+    },
   );
-});
-
-appConfigRouter.post(
-  '/mcp-servers',
-  zValidator('json', updateMcpServersRequestSchema),
-  async (c) => {
-    const updateMcpServersRequest = c.req.valid('json');
-    await updateOrCreateMcpServers(c.var.userId, updateMcpServersRequest);
-    return c.json(createSuccessResponse());
-  },
-);
-
-appConfigRouter.delete('/mcp-servers/:serverName', async (c) => {
-  const serverName = c.req.param('serverName');
-  await deleteMcpServer(c.var.userId, serverName);
-  return c.json(createSuccessResponse());
-});
-
-appConfigRouter.patch(
-  '/mcp-servers/:serverName/enabled',
-  zValidator('json', updateMcpServerEnabledRequestSchema),
-  async (c) => {
-    const serverName = c.req.param('serverName');
-    const updateMcpServerEnabledRequest = c.req.valid('json');
-    await setMcpServerEnabled(
-      c.var.userId,
-      serverName,
-      updateMcpServerEnabledRequest.enabled,
-    );
-    return c.json(createSuccessResponse());
-  },
-);
-
-export default appConfigRouter;

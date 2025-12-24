@@ -3,6 +3,6 @@
   "extends": "//",
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!node_modules", "!.turbo", "!generated"]
+    "includes": ["**", "!node_modules", "!.turbo", "!generated", "!prisma"]
   }
 }

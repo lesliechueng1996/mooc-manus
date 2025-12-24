@@ -1,19 +1,18 @@
-import type { Logger } from '@repo/pino-log';
-import { v4 as uuidv4 } from 'uuid';
-import type { ParseJson } from '@/domain/external/json-parser';
+import { randomUUIDv7 } from 'bun';
+import type { JsonParser } from '@/domain/external/json-parser';
 import type { LlmClient } from '@/domain/external/llm';
-import type { AgentConfig } from '@/domain/models/app-config';
+import type { AgentConfig } from '@/domain/model/app-config';
 import {
-  createErrorEvent,
-  createMessageEvent,
-  createToolEvent,
+  ErrorEvent,
   type Event,
+  MessageEvent,
+  ToolEvent,
   ToolEventStatus,
-} from '@/domain/models/event';
-import type { Memory } from '@/domain/models/memory';
-import type { Message } from '@/domain/models/message';
-import type { ToolResult } from '@/domain/models/tool-result';
-import { getContextLogger } from '@/infrasturcture/logging';
+} from '@/domain/model/event';
+import type { Memory } from '@/domain/model/memory';
+import type { Message } from '@/domain/model/message';
+import type { ToolResult } from '@/domain/model/tool-result';
+import type { Logger } from '@/infrastructure/logging';
 import type { ToolCollection } from '../tools/base';
 
 type ToolCall = {
@@ -29,7 +28,7 @@ type BaseAgentParams = {
   agentConfig: AgentConfig;
   llm: LlmClient;
   memory: Memory;
-  parseJson: ParseJson;
+  jsonParser: JsonParser;
   tools: Array<ToolCollection>;
 };
 
@@ -51,19 +50,20 @@ export class BaseAgent {
   protected readonly agentConfig: AgentConfig;
   protected readonly llm: LlmClient;
   protected readonly memory: Memory;
-  protected readonly parseJson: ParseJson;
+  protected readonly jsonParser: JsonParser;
   protected readonly tools: Array<ToolCollection>;
 
-  protected readonly logger: Logger;
-
-  constructor(params: BaseAgentParams, overrides: Partial<BaseAgentData> = {}) {
+  constructor(
+    protected readonly logger: Logger,
+    params: BaseAgentParams,
+    overrides: Partial<BaseAgentData> = {},
+  ) {
     Object.assign(this, overrides);
     this.agentConfig = params.agentConfig;
     this.llm = params.llm;
     this.memory = params.memory;
-    this.parseJson = params.parseJson;
+    this.jsonParser = params.jsonParser;
     this.tools = params.tools;
-    this.logger = getContextLogger();
   }
 
   protected addToMemory(messages: Array<Record<string, unknown>>) {
@@ -79,7 +79,7 @@ export class BaseAgent {
   protected getFormattedTools() {
     return this.tools
       .flatMap((tool) => tool.getTools())
-      .map((tool) => tool._toolSchema);
+      .map((tool) => tool.toolSchema);
   }
 
   protected async invokeLLM(
@@ -134,7 +134,7 @@ export class BaseAgent {
         }
         return message;
       } catch (error) {
-        this.logger.error(error, 'Failed to invoke LLM');
+        this.logger.error('Failed to invoke LLM', { error });
         await new Promise((resolve) =>
           setTimeout(resolve, this.retryInterval * 1000),
         );
@@ -165,7 +165,7 @@ export class BaseAgent {
         }
         return result;
       } catch (error) {
-        this.logger.error(error, `Failed to invoke tool ${toolName}`);
+        this.logger.error(`Failed to invoke tool ${toolName}`, { error });
         finalError = error instanceof Error ? error.message : String(error);
         await new Promise((resolve) =>
           setTimeout(resolve, this.retryInterval * 1000),
@@ -209,9 +209,9 @@ export class BaseAgent {
           if (!toolCall.function) {
             continue;
           }
-          const toolCallId = toolCall.id || uuidv4();
+          const toolCallId = toolCall.id || randomUUIDv7();
           const functionName = toolCall.function.name;
-          const functionArguments = this.parseJson(
+          const functionArguments = this.jsonParser.parse(
             toolCall.function.arguments,
           ) as Record<string, unknown>;
           const tool = this.getTool(functionName);
@@ -219,7 +219,7 @@ export class BaseAgent {
             continue;
           }
 
-          yield createToolEvent({
+          yield new ToolEvent({
             toolCallId,
             toolName: tool.collectionName,
             functionName,
@@ -233,7 +233,7 @@ export class BaseAgent {
             functionArguments,
           );
 
-          yield createToolEvent({
+          yield new ToolEvent({
             toolCallId,
             toolName: tool.collectionName,
             functionName,
@@ -254,16 +254,16 @@ export class BaseAgent {
       }
 
       if (iterationIndex >= this.agentConfig.maxIterations) {
-        yield createErrorEvent({
+        yield new ErrorEvent({
           error: `Agent reached the maximum number of iterations: ${this.agentConfig.maxIterations}`,
         });
       } else {
-        yield createMessageEvent({
+        yield new MessageEvent({
           message: message.content as string,
         });
       }
     } catch (error) {
-      yield createErrorEvent({
+      yield new ErrorEvent({
         error: error instanceof Error ? error.message : String(error),
       });
     }

@@ -1,17 +1,17 @@
 import type { MessageQueue } from './message-queue';
 
-export type TaskRunner = {
-  invoke: (task: Task) => Promise<void>;
-  destroy: () => Promise<void>;
-  onDone: (task: Task) => Promise<void>;
-};
-
-export type Task = {
+export interface Task {
   invoke: () => void;
-  cancel: () => boolean;
+  cancel: () => void;
   inputStream: MessageQueue;
   outputStream: MessageQueue;
   id: string;
-  done: () => boolean;
+  done: boolean;
   taskRunner: TaskRunner;
-};
+}
+
+export interface TaskRunner {
+  invoke: (task: Task) => Promise<void>;
+  destroy: () => Promise<void>;
+  onDone: (task: Task) => Promise<void>;
+}

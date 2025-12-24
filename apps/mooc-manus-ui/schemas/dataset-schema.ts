@@ -1,4 +1,4 @@
-import { searchPageReqSchema } from '@repo/api-schema';
+import { searchPageReqSchema } from '@repo/common';
 import { z } from 'zod';
 
 export const createDatasetReqSchema = z.object({

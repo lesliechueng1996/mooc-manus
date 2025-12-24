@@ -3,6 +3,6 @@
   "extends": "//",
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!node_modules", "!dist"]
+    "includes": ["**", "!node_modules"]
   }
 }

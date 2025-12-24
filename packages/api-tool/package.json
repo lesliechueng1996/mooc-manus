@@ -1,22 +1,22 @@
 {
   "name": "@repo/api-tool",
-  "version": "1.0.0",
-  "description": "",
+  "module": "index.ts",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
+  "private": true,
   "scripts": {
     "lint": "biome check",
     "format": "biome check --write"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@repo/pino-log": "workspace:*",
-    "@repo/api-schema": "workspace:*",
+    "@repo/common": "workspace:*",
+    "@repo/internal-langchain": "workspace:*",
     "@repo/prisma-database": "workspace:*",
-    "zod": "^4.1.12"
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

@@ -1,5 +1,5 @@
-import type { SearchResults } from '../models/search';
-import type { ToolResult } from '../models/tool-result';
+import type { SearchResults } from '../model/search';
+import type { ToolResult } from '../model/tool-result';
 
 export interface SearchEngine {
   search(

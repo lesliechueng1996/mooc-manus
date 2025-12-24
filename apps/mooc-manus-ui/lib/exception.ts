@@ -6,4 +6,4 @@ export {
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
-} from '@repo/api-schema';
+} from '@repo/common';

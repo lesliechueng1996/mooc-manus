@@ -1,5 +1,4 @@
-import type { Prisma } from '@repo/prisma-database';
-import { prisma } from '@/lib/database';
+import { type Prisma, prisma } from '@/lib/database';
 
 export const saveUploadedFile = async (
   files: Array<Omit<Prisma.UploadFileCreateManyInput, 'userId'>>,

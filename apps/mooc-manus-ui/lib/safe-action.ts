@@ -1,10 +1,9 @@
+import { BaseException, getLogger } from '@repo/common';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createSafeActionClient } from 'next-safe-action';
 import { ZodError, z } from 'zod';
 import { auth } from './auth';
-import { BaseException } from './exception';
-import { log } from './logger';
 
 export const actionClient = createSafeActionClient({
   defineMetadataSchema: () => {
@@ -13,10 +12,11 @@ export const actionClient = createSafeActionClient({
     });
   },
   handleServerError: (error, utils) => {
+    const logger = getLogger();
     const { clientInput, metadata } = utils;
-    log.error('clientInput: %o', clientInput as object);
-    log.error('metadata: %o', metadata);
-    log.error('Error: %o', error);
+    logger.error('clientInput: ', { clientInput });
+    logger.error('metadata: ', { metadata });
+    logger.error('Error: ', { error });
     if (error instanceof ZodError) {
       const errorMessage = error.issues
         .map((item) => {
@@ -28,16 +28,16 @@ export const actionClient = createSafeActionClient({
         })
         .join('; ');
 
-      log.error('Request parameter error: %o', error);
+      logger.error('Request parameter error: ', { error });
       return errorMessage;
     }
 
     if (error instanceof BaseException) {
-      log.error('Business exception: %o', error);
+      logger.error('Business exception: ', { error });
       return error.message;
     }
 
-    log.error('Unknown error: %o', error);
+    logger.error('Unknown error: ', { error });
     console.error(error);
     return 'Unknown error';
   },
@@ -45,14 +45,16 @@ export const actionClient = createSafeActionClient({
   const startTime = performance.now();
   const result = await next();
   const endTime = performance.now();
-  log.debug('Result -> %o', result);
-  log.debug('Client input -> %o', clientInput as object);
-  log.debug('Metadata -> %o', metadata);
-  log.debug('Action execution took: %dms', endTime - startTime);
+  const logger = getLogger();
+  logger.debug('Result -> ', { result });
+  logger.debug('Client input -> ', { clientInput });
+  logger.debug('Metadata -> ', { metadata });
+  logger.debug(`Action execution took: ${endTime - startTime}ms`);
   return result;
 });
 
 export const authActionClient = actionClient.use(async ({ next }) => {
+  const logger = getLogger();
   // const cookieStore = await cookies();
   // const sessionToken =
   //   cookieStore.get('better-auth.session_token')?.value ?? '';
@@ -78,7 +80,7 @@ export const authActionClient = actionClient.use(async ({ next }) => {
   });
 
   if (!session) {
-    log.error('Unauthorized');
+    logger.error('Unauthorized');
     redirect('/login');
   }
 

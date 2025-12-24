@@ -1,23 +1,21 @@
 import type { SearchEngine } from '@/domain/external/search';
-import { createTool, createToolCollection } from './base';
+import { ToolCollection, tool } from './base';
 
 type SearchWebParams = {
   query: string;
   dataRange: string | null;
 };
 
-export const createSearchWebToolCollection = (searchEngine: SearchEngine) => {
-  const searchWebToolCollection = createToolCollection('search_web_tools');
+export class SearchWebToolCollection extends ToolCollection {
+  constructor(private readonly searchEngine: SearchEngine) {
+    super('search_web_tools');
+  }
 
-  const searchWeb = async (params: SearchWebParams) => {
-    return searchEngine.search(params.query, params.dataRange);
-  };
-
-  const searchWebTool = createTool(
-    searchWeb,
-    'search_web',
-    'Web search engine tool used when real-time information is needed (such as breaking news, weather), to supplement content not covered by the internal knowledge base, or to perform fact-checking. This tool returns summaries and links of relevant web pages.',
-    {
+  @tool({
+    name: 'search_web',
+    description:
+      'Web search engine tool used when real-time information is needed (such as breaking news, weather), to supplement content not covered by the internal knowledge base, or to perform fact-checking. This tool returns summaries and links of relevant web pages.',
+    parameters: {
       query: {
         type: 'string',
         description:
@@ -37,10 +35,10 @@ export const createSearchWebToolCollection = (searchEngine: SearchEngine) => {
           '(Optional) Time range filter for search results. Must be specified when users ask about time-sensitive news or events (e.g., "yesterday", "last week"). Defaults to "all"',
       },
     },
-    ['query'],
-  );
-
-  searchWebToolCollection.registerTool(searchWebTool);
-
-  return searchWebToolCollection;
-};
+    required: ['query'],
+  })
+  async searchWebTool(params: SearchWebParams) {
+    const { query, dataRange } = params;
+    return this.searchEngine.search(query, dataRange);
+  }
+}

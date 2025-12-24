@@ -1,4 +1,4 @@
-import type { ToolResult } from '../models/tool-result';
+import type { ToolResult } from '../model/tool-result';
 import type { Browser } from './browser';
 
 export interface Sandbox {

@@ -1,4 +1,6 @@
-import type { ToolResult } from '@/domain/models/tool-result';
+import type { ToolResult } from '@/domain/model/tool-result';
+
+type ToolFunction<TArg, TRes> = (arg: TArg) => Promise<ToolResult<TRes>>;
 
 export type ToolSchema = {
   type: 'function';
@@ -13,49 +15,91 @@ export type ToolSchema = {
   };
 };
 
-export interface ToolFunction<TArg = unknown, TResult = unknown> {
-  _toolName: string;
-  _toolDescription: string;
-  _toolSchema: ToolSchema;
-  (arg: TArg): Promise<ToolResult<TResult>>;
+export interface BaseTool {
+  readonly toolName: string;
+  readonly toolDescription: string;
+  readonly toolSchema: ToolSchema;
 }
 
-export const createTool = <TArg = unknown, TResult = unknown>(
-  func: (arg: TArg) => Promise<ToolResult<TResult>>,
-  name: string,
-  description: string,
-  parameters: Record<string, Record<string, unknown>>,
-  required: Array<string>,
-): ToolFunction<TArg, TResult> => {
-  const toolSchema: ToolSchema = {
-    type: 'function',
-    function: {
-      name,
-      description,
-      parameters: {
-        type: 'object',
-        properties: parameters,
-        required: required,
+export class Tool<TArg, TRes> implements BaseTool {
+  private readonly func: ToolFunction<TArg, TRes>;
+  readonly toolName: string;
+  readonly toolDescription: string;
+  readonly toolSchema: ToolSchema;
+
+  constructor(params: {
+    func: ToolFunction<TArg, TRes>;
+    name: string;
+    description: string;
+    parameters: Record<string, Record<string, unknown>>;
+    required: Array<string>;
+  }) {
+    this.toolSchema = {
+      type: 'function',
+      function: {
+        name: params.name,
+        description: params.description,
+        parameters: {
+          type: 'object',
+          properties: params.parameters,
+          required: params.required,
+        },
       },
-    },
-  };
+    };
+    this.toolName = params.name;
+    this.toolDescription = params.description;
+    this.func = params.func;
+  }
 
-  const toolFunc = func as unknown as ToolFunction<TArg, TResult>;
-  toolFunc._toolName = name;
-  toolFunc._toolDescription = description;
-  toolFunc._toolSchema = toolSchema;
+  async invoke(arg: TArg): Promise<ToolResult<TRes>> {
+    return this.func(arg);
+  }
+}
 
-  return toolFunc;
+const TOOL_SET_KEY = Symbol('tool-set');
+
+type ToolConstructor = {
+  [TOOL_SET_KEY]?: Map<string, BaseTool>;
 };
 
-export type Tool = ToolFunction<unknown, unknown>;
-
-const filterToolParameters = (
-  func: ToolFunction<unknown, unknown>,
-  parameters: Record<string, unknown>,
+export const tool = (
+  params: Omit<ConstructorParameters<typeof Tool>[0], 'func'>,
 ) => {
-  const toolSchema = func._toolSchema;
-  const filteredParameters: Record<string, unknown> = {};
+  return <This, TArg, TRes>(
+    target: (this: This, arg: TArg) => Promise<ToolResult<TRes>>,
+    context: ClassMethodDecoratorContext<
+      This,
+      (this: This, arg: TArg) => Promise<ToolResult<TRes>>
+    >,
+  ) => {
+    context.addInitializer(function (this: This) {
+      if (!this) {
+        return;
+      }
+      const ctor = this.constructor as ToolConstructor;
+
+      if (!ctor[TOOL_SET_KEY]) {
+        ctor[TOOL_SET_KEY] = new Map<string, BaseTool>();
+      }
+
+      const toolMap = ctor[TOOL_SET_KEY];
+      if (toolMap) {
+        const toolInstance = new Tool<TArg, TRes>({
+          func: target,
+          name: params.name,
+          description: params.description,
+          parameters: params.parameters,
+          required: params.required,
+        });
+        toolMap.set(params.name, toolInstance);
+      }
+    });
+  };
+};
+
+const filterToolParameters = <TArg>(tool: BaseTool, parameters: TArg) => {
+  const toolSchema = tool.toolSchema;
+  const filteredParameters: TArg = {} as TArg;
   for (const property in parameters) {
     if (toolSchema.function.parameters.properties[property]) {
       filteredParameters[property] = parameters[property];
@@ -65,43 +109,33 @@ const filterToolParameters = (
   return filteredParameters;
 };
 
-export const createToolCollection = (name: string) => {
-  const tools: Array<Tool> = [];
-  const collectionName = name;
+export class ToolCollection {
+  constructor(readonly collectionName: string) {}
 
-  const registerTool = <TArg = unknown, TResult = unknown>(
-    tool: ToolFunction<TArg, TResult>,
-  ) => {
-    tools.push(tool as Tool);
-  };
+  protected getToolMap() {
+    const ctor = this.constructor as ToolConstructor;
+    return ctor[TOOL_SET_KEY] ?? new Map<string, BaseTool>();
+  }
 
-  const hasTool = (toolName: string) => {
-    return tools.some((tool) => tool._toolName === toolName);
-  };
+  hasTool(toolName: string): boolean {
+    return this.getToolMap().has(toolName);
+  }
 
-  const getTools = () => tools;
+  getTools(): BaseTool[] {
+    const toolMap = this.getToolMap();
+    return Array.from(toolMap.values());
+  }
 
-  const invokeTool = async (
+  async invokeTool<TArg extends Record<string, unknown>, TRes>(
     toolName: string,
-    parameters: Record<string, unknown>,
-  ): Promise<ToolResult<unknown> | null> => {
-    const tool = tools.find((tool) => tool._toolName === toolName);
+    parameters: TArg,
+  ): Promise<ToolResult<TRes>> {
+    const tool = this.getToolMap().get(toolName) as Tool<TArg, TRes>;
     if (!tool) {
       throw new Error(`Tool ${toolName} not found`);
     }
-
-    const filteredParameters = filterToolParameters(tool, parameters);
-    const result = await tool(filteredParameters);
+    const filteredParameters = filterToolParameters<TArg>(tool, parameters);
+    const result = await tool.invoke(filteredParameters);
     return result;
-  };
-
-  return {
-    registerTool,
-    hasTool,
-    getTools,
-    invokeTool,
-    collectionName,
-  };
-};
-
-export type ToolCollection = ReturnType<typeof createToolCollection>;
+  }
+}

@@ -1,39 +1,40 @@
-import { Client as McpClient } from '@modelcontextprotocol/sdk/client';
+import { Client as McpClient } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
-import type { Logger } from '@repo/pino-log';
-import { NotFoundException } from '@/application/error/exception';
+import { NotFoundException } from '@repo/common';
 import {
   type McpConfig,
   type McpServerConfig,
   type McpServerHttpConfig,
   type McpServerStdioConfig,
   McpTransport,
-} from '@/domain/models/app-config';
-import type { ToolResult } from '@/domain/models/tool-result';
-import { getContextLogger } from '@/infrasturcture/logging';
-import { redisClient } from '@/infrasturcture/storage/redis';
-import type { ToolSchema } from './base';
+} from '@/domain/model/app-config';
+import type { ToolResult } from '@/domain/model/tool-result';
+import type { Logger } from '@/infrastructure/logging';
+import { RedisClient } from '@/infrastructure/storage/redis';
+import { type BaseTool, ToolCollection, type ToolSchema } from './base';
 
 export class McpClientManager {
   private readonly mcpConfig: McpConfig;
   private readonly userId: string;
   private readonly clients: Map<string, McpClient>;
   private readonly logger: Logger;
+  private readonly redisClient: RedisClient;
 
   private initialized: boolean;
 
   readonly tools: Map<string, Array<Tool>>;
 
-  constructor(mcpConfig: McpConfig, userId: string) {
+  constructor(mcpConfig: McpConfig, userId: string, logger: Logger) {
     this.mcpConfig = mcpConfig;
     this.userId = userId;
     this.clients = new Map();
     this.tools = new Map();
     this.initialized = false;
-    this.logger = getContextLogger();
+    this.logger = logger;
+    this.redisClient = new RedisClient(logger);
   }
 
   private getCacheKey(): string {
@@ -44,13 +45,14 @@ export class McpClientManager {
     return `mcp:tools:user:${userId}`;
   }
 
-  static async clearCache(userId: string) {
+  static async clearCache(userId: string, options?: { logger: Logger }) {
     try {
       const cacheKey = McpClientManager.getCacheKey(userId);
-      await redisClient.del(cacheKey);
+      await RedisClient.del(cacheKey);
     } catch (error) {
-      const logger = getContextLogger();
-      logger.error(error, `Failed to clear MCP cache for user ${userId}`);
+      options?.logger?.error(`Failed to clear MCP cache for user ${userId}`, {
+        error,
+      });
     }
   }
 
@@ -65,7 +67,7 @@ export class McpClientManager {
       );
 
       const cacheKey = this.getCacheKey();
-      const cachedTools = await redisClient.get(cacheKey);
+      const cachedTools = await this.redisClient.get(cacheKey);
 
       if (cachedTools) {
         try {
@@ -78,8 +80,8 @@ export class McpClientManager {
           );
         } catch (error) {
           this.logger.error(
-            error,
             `Failed to parse cached tools for user ${this.userId}`,
+            { error },
           );
           await this.connectMcpServers();
           await this.cacheToolsToRedis();
@@ -92,7 +94,7 @@ export class McpClientManager {
       this.initialized = true;
       this.logger.info('MCP clients initialized successfully');
     } catch (error) {
-      this.logger.error(error, 'Failed to initialize MCP clients');
+      this.logger.error('Failed to initialize MCP clients', { error });
       throw error;
     }
   }
@@ -102,9 +104,9 @@ export class McpClientManager {
       const cacheKey = this.getCacheKey();
       const toolsObj = Object.fromEntries(this.tools);
       // Cache for 24 hours, but will be invalidated on config update
-      await redisClient.set(cacheKey, JSON.stringify(toolsObj), 'EX', 86400);
+      await this.redisClient.setex(cacheKey, 86400, JSON.stringify(toolsObj));
     } catch (error) {
-      this.logger.error(error, 'Failed to cache MCP tools to Redis');
+      this.logger.error('Failed to cache MCP tools to Redis', { error });
     }
   }
 
@@ -115,10 +117,9 @@ export class McpClientManager {
       try {
         await this.connectMcpServer(serverName, serverConfig);
       } catch (error) {
-        this.logger.error(
+        this.logger.error(`Failed to connect to MCP server ${serverName}`, {
           error,
-          `Failed to connect to MCP server ${serverName}`,
-        );
+        });
       }
     }
   }
@@ -138,7 +139,9 @@ export class McpClientManager {
         );
       }
     } catch (error) {
-      this.logger.error(error, `Failed to connect to MCP server ${serverName}`);
+      this.logger.error(`Failed to connect to MCP server ${serverName}`, {
+        error,
+      });
       throw error;
     }
   }
@@ -185,10 +188,9 @@ export class McpClientManager {
       await this.cacheMcpServerTools(serverName, mcp);
       this.logger.info(`Connected to MCP server ${serverName} successfully`);
     } catch (error) {
-      this.logger.error(
+      this.logger.error(`Failed to create stdio MCP client for ${serverName}`, {
         error,
-        `Failed to create stdio MCP client for ${serverName}`,
-      );
+      });
       throw error;
     }
   }
@@ -220,10 +222,9 @@ export class McpClientManager {
       await this.cacheMcpServerTools(serverName, mcp);
       this.logger.info(`Connected to MCP server ${serverName} successfully`);
     } catch (error) {
-      this.logger.error(
+      this.logger.error(`Failed to create SSE MCP client for ${serverName}`, {
         error,
-        `Failed to create SSE MCP client for ${serverName}`,
-      );
+      });
       throw error;
     }
   }
@@ -259,8 +260,8 @@ export class McpClientManager {
       this.logger.info(`Connected to MCP server ${serverName} successfully`);
     } catch (error) {
       this.logger.error(
-        error,
         `Failed to create Streamable HTTP MCP client for ${serverName}`,
+        { error },
       );
       throw error;
     }
@@ -275,10 +276,9 @@ export class McpClientManager {
         `Cached ${tools.length} tools for MCP server ${serverName}`,
       );
     } catch (error) {
-      this.logger.error(
+      this.logger.error(`Failed to cache MCP server tools for ${serverName}`, {
         error,
-        `Failed to cache MCP server tools for ${serverName}`,
-      );
+      });
       this.tools.set(serverName, []);
     }
   }
@@ -309,9 +309,9 @@ export class McpClientManager {
     return allTools;
   }
 
-  async invoke(
+  async invoke<TArg extends Record<string, unknown>>(
     toolName: string,
-    args: Record<string, unknown>,
+    args: TArg,
   ): Promise<ToolResult<string>> {
     try {
       let originalServerName: string | null = null;
@@ -365,7 +365,7 @@ export class McpClientManager {
         data: result.content as string,
       };
     } catch (error) {
-      this.logger.error(error, `Failed to invoke MCP tool ${toolName}`);
+      this.logger.error(`Failed to invoke MCP tool ${toolName}`, { error });
       return {
         success: false,
         message: `Failed to invoke MCP tool ${toolName}: ${error instanceof Error ? error.message : String(error)}`,
@@ -381,43 +381,44 @@ export class McpClientManager {
       this.initialized = false;
       this.logger.info('MCP clients cleaned up successfully');
     } catch (error) {
-      this.logger.error(error, 'Failed to clean up MCP clients');
+      this.logger.error('Failed to clean up MCP clients', { error });
     }
   }
 }
 
-export const createMcpToolCollection = async (
-  mcpConfig: McpConfig,
-  userId: string,
-) => {
-  const mcpClientManager = new McpClientManager(mcpConfig, userId);
-  await mcpClientManager.initialize();
+export class McpToolCollection extends ToolCollection {
+  private readonly mcpClientManager: McpClientManager;
+  private toolSchemas: ToolSchema[] = [];
 
-  const tools = mcpClientManager.getAllTools();
+  constructor(logger: Logger, mcpConfig: McpConfig, userId: string) {
+    super('mcp_tools');
+    this.mcpClientManager = new McpClientManager(mcpConfig, userId, logger);
+  }
 
-  const getTools = () => {
-    return tools;
-  };
+  async initialize() {
+    await this.mcpClientManager.initialize();
+    this.toolSchemas = this.mcpClientManager.getAllTools();
+  }
 
-  const hasTool = (toolName: string) => {
-    return tools.some((tool) => tool.function.name === toolName);
-  };
+  getTools(): BaseTool[] {
+    return this.toolSchemas.map((toolSchema) => ({
+      toolName: toolSchema.function.name,
+      toolDescription: toolSchema.function.description,
+      toolSchema: toolSchema,
+    }));
+  }
 
-  const invokeTool = async (
+  hasTool(toolName: string): boolean {
+    return this.toolSchemas.some(
+      (toolSchema) => toolSchema.function.name === toolName,
+    );
+  }
+
+  async invokeTool<TArg extends Record<string, unknown>, TRes>(
     toolName: string,
-    args: Record<string, unknown>,
-  ) => {
-    return mcpClientManager.invoke(toolName, args);
-  };
-
-  const cleanUp = () => {
-    mcpClientManager.cleanUp();
-  };
-
-  return {
-    getTools,
-    hasTool,
-    invokeTool,
-    cleanUp,
-  };
-};
+    parameters: TArg,
+  ): Promise<ToolResult<TRes>> {
+    const result = await this.mcpClientManager.invoke(toolName, parameters);
+    return result as ToolResult<TRes>;
+  }
+}
