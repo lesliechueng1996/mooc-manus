@@ -73,6 +73,7 @@ export class ShellService {
       cwd: execDir,
       lazy: true,
       stderr: 'pipe',
+      timeout: 3 * 60 * 1000, // 3 minutes
     });
   }
 
@@ -108,7 +109,7 @@ export class ShellService {
     lastConsoleRecord.output = finalOutput;
   }
 
-  private async waitForProcess(
+  async waitForProcess(
     sessionId: string,
     seconds: number = 60,
   ): Promise<ShellWaitResult> {
@@ -131,10 +132,10 @@ export class ShellService {
     ]);
 
     if (waitResult.tag === 'timeout') {
-      return new ShellWaitResult(null);
+      return new ShellWaitResult(null, sessionId);
     }
 
-    return new ShellWaitResult(waitResult.returnCode);
+    return new ShellWaitResult(waitResult.returnCode, sessionId);
   }
 
   private removeAsciiEscapeCodes(text: string) {

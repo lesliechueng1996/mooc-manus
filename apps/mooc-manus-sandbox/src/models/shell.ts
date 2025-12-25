@@ -38,7 +38,10 @@ export class Shell {
 }
 
 export class ShellWaitResult {
-  constructor(readonly returnCode: number | null) {}
+  constructor(
+    readonly returnCode: number | null,
+    readonly sessionId: string,
+  ) {}
 }
 
 export class ShellViewResult {

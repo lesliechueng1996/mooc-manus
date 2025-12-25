@@ -40,3 +40,55 @@ export const execCommandResponseSchema = createSuccessResponseSchema(
       ),
   }),
 );
+
+export const viewShellRequestSchema = z.object({
+  sessionId: z
+    .string()
+    .min(1)
+    .describe('Unique identifier for the target shell session'),
+  console: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to include console records'),
+});
+
+export const viewShellResponseSchema = createSuccessResponseSchema(
+  z.object({
+    sessionId: z
+      .string()
+      .describe('Unique identifier for the target shell session'),
+    output: z.string().describe('The output of the shell session'),
+    consoleRecords: z
+      .array(
+        z.object({
+          ps1: z.string().describe('The PS1 of the console record'),
+          command: z.string().describe('The command of the console record'),
+          output: z.string().describe('The output of the console record'),
+        }),
+      )
+      .describe('The console records of the shell session'),
+  }),
+);
+
+export const waitForProcessRequestSchema = z.object({
+  sessionId: z
+    .string()
+    .min(1)
+    .describe('Unique identifier for the target shell session'),
+  seconds: z
+    .int()
+    .min(1)
+    .optional()
+    .default(60)
+    .describe('The duration to wait for the process to finish'),
+});
+
+export const waitForProcessResponseSchema = createSuccessResponseSchema(
+  z.object({
+    sessionId: z
+      .string()
+      .describe('Unique identifier for the target shell session'),
+    returnCode: z.int().nullable().describe('The return code of the process'),
+  }),
+);
