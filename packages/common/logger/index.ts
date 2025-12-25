@@ -4,6 +4,7 @@ import {
   getConsoleSink,
   getLogger as getLogtapeLogger,
 } from '@logtape/logtape';
+import { getPrettyFormatter } from '@logtape/pretty';
 
 let loggerName = 'mooc-manus-api';
 
@@ -13,7 +14,11 @@ export const createUILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
   loggerName = 'mooc-manus-ui';
   return configure({
     sinks: {
-      console: getConsoleSink(),
+      console: getConsoleSink({
+        formatter: getPrettyFormatter({
+          timestamp: 'date-time-tz',
+        }),
+      }),
       file: getRotatingFileSink('mooc-manus-ui.log', {
         maxSize: 1024 * 1024 * 5,
         maxFiles: 5,
@@ -33,7 +38,11 @@ export const createAPILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
   loggerName = 'mooc-manus-api';
   return configure({
     sinks: {
-      console: getConsoleSink(),
+      console: getConsoleSink({
+        formatter: getPrettyFormatter({
+          timestamp: 'date-time-tz',
+        }),
+      }),
       file: getRotatingFileSink('mooc-manus-api.log', {
         maxSize: 1024 * 1024 * 5,
         maxFiles: 5,
@@ -55,7 +64,11 @@ export const createSandboxLoggerConfiguration = (
   loggerName = 'mooc-manus-sandbox';
   return configure({
     sinks: {
-      console: getConsoleSink(),
+      console: getConsoleSink({
+        formatter: getPrettyFormatter({
+          timestamp: 'date-time-tz',
+        }),
+      }),
       file: getRotatingFileSink('mooc-manus-sandbox.log', {
         maxSize: 1024 * 1024 * 5,
         maxFiles: 5,
