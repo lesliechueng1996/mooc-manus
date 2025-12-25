@@ -9,19 +9,20 @@ export class ShellToolCollection extends ToolCollection {
   @tool({
     name: 'shell_exec',
     description:
-      '在指定 Shell 会话中执行命令。可用于运行代码，安装依赖包或文件管理',
+      'Execute a command in a specified shell session. Can be used to run code, install dependencies, or manage files.',
     parameters: {
       sessionId: {
         type: 'string',
-        description: '目标 Shell 会话的唯一标识符',
+        description: 'Unique identifier for the target shell session',
       },
       execDir: {
         type: 'string',
-        description: '执行命令的工作目录（必须使用绝对路径）',
+        description:
+          'Working directory for command execution (must be an absolute path)',
       },
       command: {
         type: 'string',
-        description: '要执行的 Shell 命令',
+        description: 'The shell command to execute',
       },
     },
     required: ['sessionId', 'execDir', 'command'],
@@ -40,11 +41,12 @@ export class ShellToolCollection extends ToolCollection {
 
   @tool({
     name: 'shell_view',
-    description: '查看指定 Shell 会话的内容。用于检查命令执行结果或监控输出。',
+    description:
+      'View the content of a specified shell session. Used to check command execution results or monitor output.',
     parameters: {
       sessionId: {
         type: 'string',
-        description: '目标 Shell 会话的唯一标识符',
+        description: 'Unique identifier for the target shell session',
       },
     },
     required: ['sessionId'],
@@ -56,15 +58,15 @@ export class ShellToolCollection extends ToolCollection {
   @tool({
     name: 'shell_wait',
     description:
-      '等待指定 Shell 会话中正在运行的进程返回。在运行耗时较长的命令后使用。',
+      'Wait for a running process in a specified shell session to return. Use after running long-running commands.',
     parameters: {
       sessionId: {
         type: 'string',
-        description: '目标 Shell 会话的唯一标识符',
+        description: 'Unique identifier for the target shell session',
       },
       seconds: {
         type: 'integer',
-        description: '可选参数，等待时长（秒）',
+        description: 'Optional parameter, wait duration in seconds',
       },
     },
     required: ['sessionId'],
@@ -76,19 +78,19 @@ export class ShellToolCollection extends ToolCollection {
   @tool({
     name: 'shell_write_to_process',
     description:
-      '向指定 Shell 会话中正在运行的进程写入输入。用于响应交互式命令提示符。',
+      'Write input to a running process in a specified shell session. Used to respond to interactive command prompts.',
     parameters: {
       sessionId: {
         type: 'string',
-        description: '目标 Shell 会话的唯一标识符',
+        description: 'Unique identifier for the target shell session',
       },
       inputText: {
         type: 'string',
-        description: '要写入进程的输入内容',
+        description: 'Input content to write to the process',
       },
       pressEnter: {
         type: 'boolean',
-        description: '输入后是否按下回车键',
+        description: 'Whether to press the Enter key after input',
       },
     },
     required: ['sessionId', 'inputText', 'pressEnter'],
@@ -108,11 +110,11 @@ export class ShellToolCollection extends ToolCollection {
   @tool({
     name: 'shell_kill_process',
     description:
-      '在指定 Shell 会话中终止正在运行的进程。用于停止长时间运行的进程或处理卡死的命令。',
+      'Terminate a running process in a specified shell session. Used to stop long-running processes or handle stuck commands.',
     parameters: {
       sessionId: {
         type: 'string',
-        description: '目标 Shell 会话的唯一标识符',
+        description: 'Unique identifier for the target shell session',
       },
     },
     required: ['sessionId'],

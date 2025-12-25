@@ -23,3 +23,13 @@ export const createSuccessResponse = <T>(data: T) => {
 export const createErrorResponse = (code: number, msg: string) => {
   return createResponse(code, msg, null);
 };
+
+export const createSuccessResponseSchema = <T extends z.ZodTypeAny>(
+  dataSchema: T,
+) => {
+  return z.object({
+    code: z.number(),
+    msg: z.string().optional(),
+    data: dataSchema,
+  });
+};

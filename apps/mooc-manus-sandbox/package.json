@@ -9,6 +9,7 @@
   "dependencies": {
     "@elysiajs/openapi": "^1.4.12",
     "@repo/common": "workspace:*",
+    "effect": "^3.19.13",
     "elysia": "latest",
     "zod": "^4.2.1"
   },

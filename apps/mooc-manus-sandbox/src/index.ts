@@ -1,5 +1,4 @@
 import openapi, { fromTypes } from '@elysiajs/openapi';
-import { BaseException } from '@/interface/error/exception';
 import {
   createErrorResponse,
   createSandboxLoggerConfiguration,
@@ -8,13 +7,14 @@ import {
 } from '@repo/common';
 import { Elysia } from 'elysia';
 import { z } from 'zod';
+import { BaseException } from '@/interface/error/exception';
 import { fileRouter } from './interface/endpoint/file-router';
 import { shellRouter } from './interface/endpoint/shell-router';
 import { supervisorRouter } from './interface/endpoint/supervisor';
-import { userId } from './interface/plugin/user-id';
-import { requestId } from './interface/plugin/request-id';
 import { httpLog } from './interface/plugin/http-log';
 import { logger as loggerPlugin } from './interface/plugin/logger';
+import { requestId } from './interface/plugin/request-id';
+import { userId } from './interface/plugin/user-id';
 
 await createSandboxLoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
 const logger = getLogger();
