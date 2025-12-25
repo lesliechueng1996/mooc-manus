@@ -92,3 +92,45 @@ export const waitForProcessResponseSchema = createSuccessResponseSchema(
     returnCode: z.int().nullable().describe('The return code of the process'),
   }),
 );
+
+export const writeToProcessRequestSchema = z.object({
+  sessionId: z
+    .string()
+    .min(1)
+    .describe('Unique identifier for the target shell session'),
+  inputText: z
+    .string()
+    .min(1)
+    .describe('The input text to write to the process'),
+  pressEnter: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to press the Enter key after input'),
+});
+
+export const writeToProcessResponseSchema = createSuccessResponseSchema(
+  z.object({
+    sessionId: z
+      .string()
+      .describe('Unique identifier for the target shell session'),
+    status: z.string().describe('The status of the process'),
+  }),
+);
+
+export const shellKillRequestSchema = z.object({
+  sessionId: z
+    .string()
+    .min(1)
+    .describe('Unique identifier for the target shell session'),
+});
+
+export const shellKillResponseSchema = createSuccessResponseSchema(
+  z.object({
+    sessionId: z
+      .string()
+      .describe('Unique identifier for the target shell session'),
+    status: z.string().describe('The status of the process'),
+    returnCode: z.int().nullable().describe('The return code of the process'),
+  }),
+);

@@ -9,10 +9,16 @@ import {
 } from '@/interface/error/exception';
 import {
   ConsoleRecord,
+  type Process,
   Shell,
   ShellExecResult,
+  ShellKillResult,
+  ShellKillStatus,
+  ShellStatus,
   ShellViewResult,
   ShellWaitResult,
+  ShellWriteResult,
+  ShellWriteStatus,
 } from '@/models/shell';
 
 const activeShells: Map<string, Shell> = new Map();
@@ -43,7 +49,7 @@ export class ShellService {
     return `${username}@${hostname}:${displayPath}`;
   }
 
-  private createProcess(command: string, execDir: string) {
+  private createProcess(command: string, execDir: string, sessionId: string) {
     this.logger.info('Creating process: {command} in {execDir}', {
       command,
       execDir,
@@ -69,12 +75,29 @@ export class ShellService {
       shellExec = Bun.env.SHELL || '/bin/bash';
     }
 
-    return Bun.spawn([shellExec, '-c', command], {
+    const proc = Bun.spawn([shellExec, '-c', command], {
       cwd: execDir,
       lazy: true,
+      stdin: 'pipe',
+      stdout: 'pipe',
       stderr: 'pipe',
-      timeout: 3 * 60 * 1000, // 3 minutes
+      timeout: 10 * 60 * 1000, // 10 minutes
+      onExit: async (_proc, exitCode, signalCode, error) => {
+        this.logger.info(
+          'Process exited: {sessionId}, exitCode: {exitCode}, signalCode: {signalCode}, error: {error}',
+          {
+            sessionId,
+            exitCode,
+            signalCode,
+            error,
+          },
+        );
+      },
     });
+
+    this.startReadingOutput(sessionId, proc);
+
+    return proc;
   }
 
   private getShell(sessionId: string): Shell {
@@ -93,20 +116,77 @@ export class ShellService {
     return shell;
   }
 
-  private async readProcessOutput(sessionId: string) {
-    const shell = this.getShell(sessionId);
+  private startReadingOutput(sessionId: string, proc: Process) {
+    const stdoutReader = proc.stdout.getReader();
+    const readStdout = async () => {
+      try {
+        while (true) {
+          const { done, value } = await stdoutReader.read();
+          if (done) break;
+          if (value) {
+            const text = new TextDecoder().decode(value);
+            const shell = activeShells.get(sessionId);
+            if (shell) {
+              shell.output += text;
+              const lastConsoleRecord =
+                shell.consoleRecords[shell.consoleRecords.length - 1];
+              if (lastConsoleRecord) {
+                lastConsoleRecord.output += text;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        this.logger.error(
+          'Error reading stdout for session: {sessionId}, error: {error}',
+          { sessionId, error },
+        );
+      } finally {
+        stdoutReader.releaseLock();
+      }
+    };
 
-    const proc = shell.process;
-    const textPromise = new Response(proc.stdout).text();
-    const errorPromise = new Response(proc.stderr).text();
-    const [text, error] = await Promise.all([textPromise, errorPromise]);
+    const stderrReader = proc.stderr.getReader();
+    const readStderr = async () => {
+      try {
+        while (true) {
+          const { done, value } = await stderrReader.read();
+          if (done) break;
+          if (value) {
+            const text = new TextDecoder().decode(value);
+            const shell = activeShells.get(sessionId);
+            if (shell) {
+              shell.output += text;
+              const lastConsoleRecord =
+                shell.consoleRecords[shell.consoleRecords.length - 1];
+              if (lastConsoleRecord) {
+                lastConsoleRecord.output += text;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        this.logger.error(
+          'Error reading stderr for session: {sessionId}, error: {error}',
+          { sessionId, error },
+        );
+      } finally {
+        stderrReader.releaseLock();
+      }
+    };
 
-    const finalOutput = text + error;
-    const lastConsoleRecord =
-      shell.consoleRecords[shell.consoleRecords.length - 1];
-
-    shell.output = finalOutput;
-    lastConsoleRecord.output = finalOutput;
+    readStdout().catch((error) => {
+      this.logger.error(
+        'Error in stdout reading loop for session: {sessionId}, error: {error}',
+        { sessionId, error },
+      );
+    });
+    readStderr().catch((error) => {
+      this.logger.error(
+        'Error in stderr reading loop for session: {sessionId}, error: {error}',
+        { sessionId, error },
+      );
+    });
   }
 
   async waitForProcess(
@@ -126,8 +206,8 @@ export class ShellService {
       sleepPromise.then(() => {
         return { tag: 'timeout' as const };
       }),
-      proc.exited.then(() => {
-        return { tag: 'exited' as const, returnCode: proc.exitCode };
+      proc.exited.then((code) => {
+        return { tag: 'exited' as const, returnCode: code };
       }),
     ]);
 
@@ -209,7 +289,7 @@ export class ShellService {
         this.logger.info('Creating new shell session: {sessionId}', {
           sessionId,
         });
-        const proc = this.createProcess(command, execDir);
+        const proc = this.createProcess(command, execDir, sessionId);
         const newShell = new Shell(proc, execDir);
         newShell.addConsoleRecord(new ConsoleRecord(ps1, command, ''));
         activeShells.set(sessionId, newShell);
@@ -233,7 +313,7 @@ export class ShellService {
           oldProcess.kill();
         }
 
-        const newProcess = this.createProcess(command, execDir);
+        const newProcess = this.createProcess(command, execDir, sessionId);
         shell.process = newProcess;
         shell.execDir = execDir;
         shell.output = '';
@@ -246,14 +326,13 @@ export class ShellService {
           'Process finished: {sessionId}, returnCode: {returnCode}',
           { sessionId, returnCode: waitResult.returnCode },
         );
-        await this.readProcessOutput(sessionId);
 
         const viewResult = this.viewShell(sessionId);
 
         return ShellExecResult.make({
           sessionId,
           command,
-          status: 'completed',
+          status: ShellStatus.COMPLETED,
           returnCode: waitResult.returnCode,
           output: viewResult.output,
         });
@@ -262,7 +341,7 @@ export class ShellService {
       return ShellExecResult.make({
         sessionId,
         command,
-        status: 'running',
+        status: ShellStatus.RUNNING,
       });
     } catch (error) {
       this.logger.error(
@@ -271,6 +350,96 @@ export class ShellService {
       );
       throw new InternalServerErrorException(
         `Error executing command: ${command} in ${execDir} with sessionId: ${sessionId}, error: ${JSON.stringify(error)}`,
+      );
+    }
+  }
+
+  async writeToProcess(
+    sessionId: string,
+    inputText: string,
+    pressEnter: boolean = false,
+  ): Promise<ShellWriteResult> {
+    const shell = this.getShell(sessionId);
+
+    if (shell.process.exitCode !== null) {
+      this.logger.error(
+        'Process is finished: {sessionId}, cannot write to process',
+        { sessionId },
+      );
+      throw new BadRequestException(`Process is finished: ${sessionId}`);
+    }
+
+    try {
+      let lineEnding = '\n';
+      const platform = os.platform();
+      if (platform === 'win32') {
+        lineEnding = '\r\n';
+      }
+
+      let finialInput = inputText;
+      if (pressEnter) {
+        finialInput += lineEnding;
+      }
+
+      shell.output += finialInput;
+      if (shell.consoleRecords.length > 0) {
+        shell.consoleRecords[shell.consoleRecords.length - 1].output +=
+          finialInput;
+      }
+
+      shell.process.stdin.write(finialInput);
+      await shell.process.stdin.flush();
+
+      if (pressEnter) {
+        await Bun.sleep(100);
+      }
+
+      return new ShellWriteResult(sessionId, ShellWriteStatus.SUCCESS);
+    } catch (error) {
+      this.logger.error(
+        'Error writing to process: {sessionId}, error: {error}',
+        { sessionId, error },
+      );
+      throw new InternalServerErrorException(
+        `Error writing to process: ${sessionId}`,
+      );
+    }
+  }
+
+  async killProcess(sessionId: string): Promise<ShellKillResult> {
+    const shell = this.getShell(sessionId);
+
+    if (shell.process.exitCode !== null) {
+      this.logger.warn(
+        'Process is finished: {sessionId}, do not need to kill process',
+        { sessionId },
+      );
+      return new ShellKillResult(
+        sessionId,
+        ShellKillStatus.ALREADY_TERMINATED,
+        shell.process.exitCode,
+      );
+    }
+
+    try {
+      shell.process.kill();
+      const exitCode = await shell.process.exited;
+      this.logger.info('Process killed: {sessionId}, returnCode: {exitCode}', {
+        sessionId,
+        exitCode,
+      });
+      return new ShellKillResult(
+        sessionId,
+        ShellKillStatus.TERMINATED,
+        exitCode,
+      );
+    } catch (error) {
+      this.logger.error('Error killing process: {sessionId}, error: {error}', {
+        sessionId,
+        error,
+      });
+      throw new InternalServerErrorException(
+        `Error killing process: ${sessionId}`,
       );
     }
   }

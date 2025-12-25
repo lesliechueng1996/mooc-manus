@@ -1,12 +1,17 @@
 import type { Subprocess } from 'bun';
 import { Schema } from 'effect';
 
+export enum ShellStatus {
+  RUNNING = 'running',
+  COMPLETED = 'completed',
+}
+
 export class ShellExecResult extends Schema.Class<ShellExecResult>(
   'ShellExecResult',
 )({
   sessionId: Schema.String,
   command: Schema.String,
-  status: Schema.String,
+  status: Schema.Enums(ShellStatus),
   returnCode: Schema.optional(Schema.Number),
   output: Schema.optional(Schema.String),
 }) {}
@@ -19,13 +24,15 @@ export class ConsoleRecord {
   ) {}
 }
 
+export type Process = Subprocess<'pipe', 'pipe', 'pipe'>;
+
 export class Shell {
-  process: Bun.Subprocess<'ignore', 'pipe', 'pipe'>;
+  process: Process;
   execDir: string;
   output: string;
   consoleRecords: ConsoleRecord[] = [];
 
-  constructor(process: Subprocess<'ignore', 'pipe', 'pipe'>, execDir: string) {
+  constructor(process: Process, execDir: string) {
     this.process = process;
     this.execDir = execDir;
     this.output = '';
@@ -49,5 +56,29 @@ export class ShellViewResult {
     readonly sessionId: string,
     readonly output: string,
     readonly consoleRecords: ConsoleRecord[] = [],
+  ) {}
+}
+
+export enum ShellWriteStatus {
+  SUCCESS = 'success',
+}
+
+export class ShellWriteResult {
+  constructor(
+    readonly sessionId: string,
+    readonly status: string,
+  ) {}
+}
+
+export enum ShellKillStatus {
+  TERMINATED = 'terminated',
+  ALREADY_TERMINATED = 'already_terminated',
+}
+
+export class ShellKillResult {
+  constructor(
+    readonly sessionId: string,
+    readonly status: string,
+    readonly returnCode: number,
   ) {}
 }

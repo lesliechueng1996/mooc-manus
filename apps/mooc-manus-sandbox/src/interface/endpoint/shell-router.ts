@@ -6,10 +6,14 @@ import { logger as loggerPlugin } from '../plugin/logger';
 import {
   execCommandRequestSchema,
   execCommandResponseSchema,
+  shellKillRequestSchema,
+  shellKillResponseSchema,
   viewShellRequestSchema,
   viewShellResponseSchema,
   waitForProcessRequestSchema,
   waitForProcessResponseSchema,
+  writeToProcessRequestSchema,
+  writeToProcessResponseSchema,
 } from '../schema/shell';
 
 export const shellRouter = new Elysia({
@@ -75,6 +79,40 @@ export const shellRouter = new Elysia({
       body: waitForProcessRequestSchema,
       response: {
         200: waitForProcessResponseSchema,
+      },
+    },
+  )
+  .post(
+    '/write-to-process',
+    async ({ body, logger }) => {
+      const { sessionId, inputText, pressEnter } = body;
+      const shellService = new ShellService(logger);
+      const result = await shellService.writeToProcess(
+        sessionId,
+        inputText,
+        pressEnter,
+      );
+      return createSuccessResponse(result);
+    },
+    {
+      body: writeToProcessRequestSchema,
+      response: {
+        200: writeToProcessResponseSchema,
+      },
+    },
+  )
+  .post(
+    '/kill-process',
+    async ({ body, logger }) => {
+      const { sessionId } = body;
+      const shellService = new ShellService(logger);
+      const result = await shellService.killProcess(sessionId);
+      return createSuccessResponse(result);
+    },
+    {
+      body: shellKillRequestSchema,
+      response: {
+        200: shellKillResponseSchema,
       },
     },
   );
