@@ -1,4 +1,6 @@
+import { createSuccessResponse } from '@repo/common';
 import { Elysia } from 'elysia';
+import { FileService } from '@/service/file';
 import { logger as loggerPlugin } from '../plugin/logger';
 import {
   readFileRequestSchema,
@@ -6,8 +8,6 @@ import {
   writeFileRequestSchema,
   writeFileResponseSchema,
 } from '../schema/file';
-import { FileService } from '@/service/file';
-import { createSuccessResponse } from '@repo/common';
 
 export const fileRouter = new Elysia({
   name: 'file-router',
@@ -33,6 +33,9 @@ export const fileRouter = new Elysia({
       body: readFileRequestSchema,
       response: {
         200: readFileResponseSchema,
+      },
+      detail: {
+        summary: 'Read file content',
       },
     },
   )
@@ -62,6 +65,9 @@ export const fileRouter = new Elysia({
       body: writeFileRequestSchema,
       response: {
         200: writeFileResponseSchema,
+      },
+      detail: {
+        summary: 'Write file content',
       },
     },
   );

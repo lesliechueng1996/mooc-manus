@@ -50,6 +50,9 @@ export const shellRouter = new Elysia({
       response: {
         200: execCommandResponseSchema,
       },
+      detail: {
+        summary: 'Execute command in shell',
+      },
     },
   )
   .post(
@@ -65,6 +68,9 @@ export const shellRouter = new Elysia({
       response: {
         200: viewShellResponseSchema,
       },
+      detail: {
+        summary: 'View shell console',
+      },
     },
   )
   .post(
@@ -79,6 +85,9 @@ export const shellRouter = new Elysia({
       body: waitForProcessRequestSchema,
       response: {
         200: waitForProcessResponseSchema,
+      },
+      detail: {
+        summary: 'Wait for process to finish',
       },
     },
   )
@@ -99,6 +108,9 @@ export const shellRouter = new Elysia({
       response: {
         200: writeToProcessResponseSchema,
       },
+      detail: {
+        summary: 'Write to process',
+      },
     },
   )
   .post(
@@ -113,6 +125,9 @@ export const shellRouter = new Elysia({
       body: shellKillRequestSchema,
       response: {
         200: shellKillResponseSchema,
+      },
+      detail: {
+        summary: 'Kill process',
       },
     },
   );
