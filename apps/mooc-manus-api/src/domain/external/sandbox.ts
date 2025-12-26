@@ -24,7 +24,7 @@ export interface Sandbox {
   killProcess(sessionId: string): Promise<ToolResult<void>>;
 
   fileWrite(
-    filePath: string,
+    filepath: string,
     content: string,
     options?: {
       append?: boolean;
@@ -35,7 +35,7 @@ export interface Sandbox {
   ): Promise<ToolResult<void>>;
 
   fileRead(
-    filePath: string,
+    filepath: string,
     options?: {
       startLine?: number;
       endLine?: number;
@@ -44,21 +44,21 @@ export interface Sandbox {
     },
   ): Promise<ToolResult<string>>;
 
-  fileExists(filePath: string): Promise<ToolResult<boolean>>;
+  fileExists(filepath: string): Promise<ToolResult<boolean>>;
 
-  fileDelete(filePath: string): Promise<ToolResult<void>>;
+  fileDelete(filepath: string): Promise<ToolResult<void>>;
 
   fileList(dirPath: string): Promise<ToolResult<string[]>>;
 
   fileReplace(
-    filePath: string,
+    filepath: string,
     oldText: string,
     newText: string,
     options?: { sudo?: boolean },
   ): Promise<ToolResult<void>>;
 
   fileSearch(
-    filePath: string,
+    filepath: string,
     regex: string,
     options?: { sudo?: boolean },
   ): Promise<ToolResult<string[]>>;
@@ -67,11 +67,11 @@ export interface Sandbox {
 
   fileUpload(
     fileData: Buffer,
-    filePath: string,
+    filepath: string,
     fileName?: string,
   ): Promise<ToolResult<void>>;
 
-  fileDownload(filePath: string): Promise<Buffer>;
+  fileDownload(filepath: string): Promise<Buffer>;
 
   ensureSandbox(): Promise<void>;
 

@@ -11,7 +11,7 @@ export class FileToolCollection extends ToolCollection {
     description:
       'Read file content. Used to check file content, analyze logs, or read configuration files.',
     parameters: {
-      filePath: {
+      filepath: {
         type: 'string',
         description: 'Absolute path of the file to read',
       },
@@ -34,10 +34,10 @@ export class FileToolCollection extends ToolCollection {
           '(Optional) Maximum length of file content to read, default is 10000',
       },
     },
-    required: ['filePath'],
+    required: ['filepath'],
   })
   async fileRead(params: {
-    filePath: string;
+    filepath: string;
     startLine?: number;
     endLine?: number;
     sudo?: boolean;
@@ -49,7 +49,7 @@ export class FileToolCollection extends ToolCollection {
       sudo: params.sudo,
       maxLength: params.maxLength ?? 10000,
     };
-    return this.sandbox.fileRead(params.filePath, options);
+    return this.sandbox.fileRead(params.filepath, options);
   }
 
   @tool({
@@ -57,7 +57,7 @@ export class FileToolCollection extends ToolCollection {
     description:
       'Write to a file with overwrite or append mode. Used to create new files, append content, or modify existing files.',
     parameters: {
-      filePath: {
+      filepath: {
         type: 'string',
         description: 'Absolute path of the file to write',
       },
@@ -85,17 +85,17 @@ export class FileToolCollection extends ToolCollection {
           '(Optional) Whether to use sudo permission to write the file',
       },
     },
-    required: ['filePath', 'content'],
+    required: ['filepath', 'content'],
   })
   async fileWrite(params: {
-    filePath: string;
+    filepath: string;
     content: string;
     append?: boolean;
     leadingNewline?: boolean;
     trailingNewline?: boolean;
     sudo?: boolean;
   }) {
-    return this.sandbox.fileWrite(params.filePath, params.content, params);
+    return this.sandbox.fileWrite(params.filepath, params.content, params);
   }
 
   @tool({
@@ -103,7 +103,7 @@ export class FileToolCollection extends ToolCollection {
     description:
       'Replace specified string in a file. Used to update specific content in files or fix errors in code.',
     parameters: {
-      filePath: {
+      filepath: {
         type: 'string',
         description: 'Absolute path of the file to replace content',
       },
@@ -121,16 +121,16 @@ export class FileToolCollection extends ToolCollection {
           '(Optional) Whether to use sudo permission to replace string',
       },
     },
-    required: ['filePath', 'oldStr', 'newStr'],
+    required: ['filepath', 'oldStr', 'newStr'],
   })
   async fileStrReplace(params: {
-    filePath: string;
+    filepath: string;
     oldStr: string;
     newStr: string;
     sudo?: boolean;
   }) {
     return this.sandbox.fileReplace(
-      params.filePath,
+      params.filepath,
       params.oldStr,
       params.newStr,
       params,
@@ -142,7 +142,7 @@ export class FileToolCollection extends ToolCollection {
     description:
       'Search for matching text in file content. Used to find specific content or patterns in files.',
     parameters: {
-      filePath: {
+      filepath: {
         type: 'string',
         description: 'Absolute path of the file to search content',
       },
@@ -156,14 +156,14 @@ export class FileToolCollection extends ToolCollection {
           '(Optional) Whether to use sudo permission to search file content',
       },
     },
-    required: ['filePath', 'regex'],
+    required: ['filepath', 'regex'],
   })
   async fileFindInContent(params: {
-    filePath: string;
+    filepath: string;
     regex: string;
     sudo?: boolean;
   }) {
-    return this.sandbox.fileSearch(params.filePath, params.regex, params);
+    return this.sandbox.fileSearch(params.filepath, params.regex, params);
   }
 
   @tool({

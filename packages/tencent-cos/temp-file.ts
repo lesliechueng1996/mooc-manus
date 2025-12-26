@@ -7,24 +7,24 @@ const logger = getLogger();
 
 export const withTempFile = async <T>(
   fileKey: string,
-  callback: (filePath: string) => Promise<T>,
+  callback: (filepath: string) => Promise<T>,
 ) => {
-  let tempFilePath = '';
+  let tempFilepath = '';
   try {
-    tempFilePath = path.join(os.tmpdir(), fileKey);
+    tempFilepath = path.join(os.tmpdir(), fileKey);
 
-    const tempDir = path.dirname(tempFilePath);
+    const tempDir = path.dirname(tempFilepath);
     await fs.mkdir(tempDir, { recursive: true });
 
-    logger.info(`temp file path: ${tempFilePath}`);
-    return await callback(tempFilePath);
+    logger.info(`temp file path: ${tempFilepath}`);
+    return await callback(tempFilepath);
   } catch (error) {
     logger.error(`处理临时文件失败: ${error}`);
     throw error;
   } finally {
-    if (tempFilePath) {
-      await fs.rm(tempFilePath);
-      logger.info(`delete temp file: ${tempFilePath}`);
+    if (tempFilepath) {
+      await fs.rm(tempFilepath);
+      logger.info(`delete temp file: ${tempFilepath}`);
     }
   }
 };
