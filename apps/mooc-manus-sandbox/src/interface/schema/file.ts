@@ -30,7 +30,42 @@ export const readFileRequestSchema = z.object({
 
 export const readFileResponseSchema = createSuccessResponseSchema(
   z.object({
-    filepath: z.string().describe('The path of the file to read'),
-    content: z.string().describe('The content of the file'),
+    filepath: z.string().describe('Absolute path of the file to read'),
+    content: z.string().describe('Content of the file'),
+  }),
+);
+
+export const writeFileRequestSchema = z.object({
+  filepath: z.string().describe('Absolute path of the file to read'),
+  content: z.string().describe('Content of the file'),
+  append: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to append to the file'),
+  leadingNewline: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to add leading newline at the beginning of content'),
+  trailingNewline: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to add trailing newline at the end of content'),
+  sudo: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to use sudo permission to write the file'),
+});
+
+export const writeFileResponseSchema = createSuccessResponseSchema(
+  z.object({
+    filepath: z.string().describe('Absolute path of the file to write'),
+    bytesWritten: z
+      .number()
+      .nullable()
+      .describe('Number of bytes written to the file'),
   }),
 );

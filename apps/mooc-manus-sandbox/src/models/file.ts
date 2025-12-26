@@ -4,3 +4,10 @@ export class FileReadResult {
     readonly content: string,
   ) {}
 }
+
+export class FileWriteResult {
+  constructor(
+    readonly filepath: string,
+    readonly bytesWritten: number,
+  ) {}
+}
