@@ -36,7 +36,12 @@ export interface Sandbox {
 
   fileRead(
     filePath: string,
-    options?: { startLine?: number; endLine?: number; sudo?: boolean },
+    options?: {
+      startLine?: number;
+      endLine?: number;
+      sudo?: boolean;
+      maxLength?: number;
+    },
   ): Promise<ToolResult<string>>;
 
   fileExists(filePath: string): Promise<ToolResult<boolean>>;
