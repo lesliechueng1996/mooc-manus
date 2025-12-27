@@ -1,7 +1,7 @@
 {
   "name": "Mooc Manus Sandbox",
   "build": {
-    "dockerfile": "../apps/mooc-manus-sandbox/Dockerfile",
+    "dockerfile": "../Dockerfile.sandbox",
     "context": "..",
     "target": "development"
   },
@@ -36,7 +36,7 @@
   },
   
   "mounts": [
-    "source=${localWorkspaceFolder}/node_modules,target=/workspace/node_modules,type=bind,consistency=cached"
+    "source=mooc-manus-sandbox-node-modules,target=/workspace/node_modules,type=volume"
   ],
 
   "shutdownAction": "stopContainer"
