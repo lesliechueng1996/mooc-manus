@@ -1,4 +1,5 @@
 import { createSuccessResponseSchema } from '@repo/common';
+import { ElysiaFile } from 'elysia';
 import { z } from 'zod';
 
 export const readFileRequestSchema = z.object({
@@ -69,3 +70,78 @@ export const writeFileResponseSchema = createSuccessResponseSchema(
       .describe('Number of bytes written to the file'),
   }),
 );
+
+export const replaceInFileRequestSchema = z.object({
+  filepath: z.string().describe('Absolute path of the file to replace content'),
+  oldStr: z.string().describe('Original string to be replaced'),
+  newStr: z.string().describe('New string to replace with'),
+  sudo: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to use sudo permission to replace string'),
+});
+
+export const replaceInFileResponseSchema = createSuccessResponseSchema(
+  z.object({
+    filepath: z
+      .string()
+      .describe('Absolute path of the file to replace content'),
+    replacedCount: z.number().describe('Number of replacements made'),
+  }),
+);
+
+export const searchInFileRequestSchema = z.object({
+  filepath: z.string().describe('Absolute path of the file to search content'),
+  regex: z.string().describe('Regular expression pattern for matching'),
+  sudo: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('Whether to use sudo permission to search file content'),
+});
+
+export const searchInFileResponseSchema = createSuccessResponseSchema(
+  z.object({
+    filepath: z
+      .string()
+      .describe('Absolute path of the file to search content'),
+    matches: z.array(z.string()).describe('Matches found in the file'),
+    lineNumbers: z.array(z.number()).describe('Line numbers of matches'),
+  }),
+);
+
+export const findFileRequestSchema = z.object({
+  dirPath: z.string().describe('Absolute path of the directory to search'),
+  globPattern: z
+    .string()
+    .describe('Filename pattern using glob syntax wildcards'),
+});
+
+export const findFileResponseSchema = createSuccessResponseSchema(
+  z.object({
+    dirPath: z.string().describe('Absolute path of the directory to search'),
+    files: z.array(z.string()).describe('Files found in the directory'),
+  }),
+);
+
+export const uploadFileRequestSchema = z.object({
+  file: z.file().describe('File to upload'),
+  filepath: z.string().describe('Absolute path of the file to upload'),
+});
+
+export const uploadFileResponseSchema = createSuccessResponseSchema(
+  z.object({
+    filepath: z.string().describe('Absolute path of the file to upload'),
+    fileSize: z.number().describe('Size of the file in bytes'),
+    success: z.boolean().describe('Whether the file upload is successful'),
+  }),
+);
+
+export const downloadFileRequestSchema = z.object({
+  filepath: z.string().describe('Absolute path of the file to download'),
+});
+
+export const downloadFileResponseSchema = z
+  .instanceof(ElysiaFile)
+  .describe('Downloaded file');
