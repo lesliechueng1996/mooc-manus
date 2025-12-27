@@ -56,19 +56,11 @@ export class ShellService {
     });
 
     let shellExec: string | undefined;
-    const platform = os.platform();
-    if (platform !== 'win32') {
-      const shell = os.userInfo().shell;
-      if (shell?.includes('/bin/bash')) {
-        shellExec = '/bin/bash';
-      } else if (shell?.includes('/bin/zsh')) {
-        shellExec = '/bin/zsh';
-      }
-    } else {
-      shellExec = Bun.which('powershell') ?? '';
-      if (shellExec === '') {
-        shellExec = Bun.which('cmd') ?? '';
-      }
+    const shell = os.userInfo().shell;
+    if (shell?.includes('/bin/bash')) {
+      shellExec = '/bin/bash';
+    } else if (shell?.includes('/bin/zsh')) {
+      shellExec = '/bin/zsh';
     }
 
     if (!shellExec) {
@@ -370,11 +362,7 @@ export class ShellService {
     }
 
     try {
-      let lineEnding = '\n';
-      const platform = os.platform();
-      if (platform === 'win32') {
-        lineEnding = '\r\n';
-      }
+      const lineEnding = '\n';
 
       let finialInput = inputText;
       if (pressEnter) {

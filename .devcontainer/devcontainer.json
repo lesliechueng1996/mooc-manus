@@ -1,0 +1,41 @@
+{
+  "name": "Mooc Manus Sandbox",
+  "build": {
+    "dockerfile": "../apps/mooc-manus-sandbox/Dockerfile",
+    "context": "..",
+    "target": "development"
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  
+  "features": {},
+  
+  "forwardPorts": [8081],
+  "portsAttributes": {
+    "8081": {
+      "label": "Sandbox API",
+      "onAutoForward": "notify"
+    }
+  },
+  
+  "postCreateCommand": "bun install",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "oven.bun-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  
+  "remoteEnv": {
+    "LOG_LEVEL": "info"
+  },
+  
+  "mounts": [
+    "source=${localWorkspaceFolder}/node_modules,target=/workspace/node_modules,type=bind,consistency=cached"
+  ]
+}

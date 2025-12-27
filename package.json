@@ -4,6 +4,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:local": "turbo run dev --filter='!mooc-manus-sandbox'",
+    "dev:sandbox": "turbo run dev --filter='mooc-manus-sandbox'",
     "lint": "turbo run lint",
     "format": "turbo run format"
   },

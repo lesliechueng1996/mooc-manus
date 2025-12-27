@@ -32,11 +32,15 @@ export class FileService {
     }
 
     try {
-      const platform = os.platform();
       let content = '';
-      if (sudo && platform !== 'win32') {
-        const command = `sudo cat ${filepath}`;
-        content = await $`${command}`.text();
+      if (sudo) {
+        const command = `cat ${filepath}`;
+        const proc = Bun.spawn(['sudo', 'bash', '-c', command], {
+          stdout: 'pipe',
+          stderr: 'pipe',
+        });
+        content = await new Response(proc.stdout).text();
+        await proc.exited;
       } else {
         const file = Bun.file(filepath);
         content = await file.text();
@@ -80,17 +84,20 @@ export class FileService {
         finalContent = `${finalContent}\n`;
       }
 
-      const platform = os.platform();
       let bytesWritten = 0;
-      if (sudo && platform !== 'win32') {
+      if (sudo) {
         const mode = append ? '>>' : '>';
         const tempFilePath = path.join(
           os.tmpdir(),
           `file-write-${process.pid}.tmp`,
         );
         bytesWritten = await Bun.write(tempFilePath, finalContent);
-        const command = `sudo bash -c "cat ${tempFilePath} ${mode} ${filepath}"`;
-        await $`${command}`.quiet();
+        const command = `cat ${tempFilePath} ${mode} ${filepath}`;
+        const proc = Bun.spawn(['sudo', 'bash', '-c', command], {
+          stdout: 'pipe',
+          stderr: 'pipe',
+        });
+        await proc.exited;
 
         await fs.promises.unlink(tempFilePath);
       } else {
