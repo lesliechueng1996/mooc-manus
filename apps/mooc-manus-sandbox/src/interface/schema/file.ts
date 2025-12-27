@@ -145,3 +145,25 @@ export const downloadFileRequestSchema = z.object({
 export const downloadFileResponseSchema = z
   .instanceof(ElysiaFile)
   .describe('Downloaded file');
+
+export const checkFileExistsRequestSchema = z.object({
+  filepath: z.string().describe('Absolute path of the file to check'),
+});
+
+export const checkFileExistsResponseSchema = createSuccessResponseSchema(
+  z.object({
+    filepath: z.string().describe('Absolute path of the file to check'),
+    exists: z.boolean().describe('Whether the file exists'),
+  }),
+);
+
+export const deleteFileRequestSchema = z.object({
+  filepath: z.string().describe('Absolute path of the file to delete'),
+});
+
+export const deleteFileResponseSchema = createSuccessResponseSchema(
+  z.object({
+    filepath: z.string().describe('Absolute path of the file to delete'),
+    deleted: z.boolean().describe('Whether the file is deleted successfully'),
+  }),
+);

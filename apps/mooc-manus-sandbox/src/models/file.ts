@@ -41,3 +41,10 @@ export class FileUploadResult {
     readonly success: boolean,
   ) {}
 }
+
+export class FileDeleteResult {
+  constructor(
+    readonly filepath: string,
+    readonly deleted: boolean,
+  ) {}
+}

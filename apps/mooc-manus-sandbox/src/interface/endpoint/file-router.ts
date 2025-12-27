@@ -3,6 +3,10 @@ import { Elysia, file } from 'elysia';
 import { FileService } from '@/service/file';
 import { logger as loggerPlugin } from '../plugin/logger';
 import {
+  checkFileExistsRequestSchema,
+  checkFileExistsResponseSchema,
+  deleteFileRequestSchema,
+  deleteFileResponseSchema,
   downloadFileRequestSchema,
   downloadFileResponseSchema,
   findFileRequestSchema,
@@ -173,6 +177,52 @@ export const fileRouter = new Elysia({
       },
       detail: {
         summary: 'Download file',
+      },
+    },
+  )
+  .post(
+    '/check-file-exists',
+    async ({ body, logger }) => {
+      const { filepath } = body;
+      const fileService = new FileService(logger);
+      try {
+        fileService.ensureFile(filepath);
+        return createSuccessResponse({
+          filepath,
+          exists: true,
+        });
+      } catch {
+        return createSuccessResponse({
+          filepath,
+          exists: false,
+        });
+      }
+    },
+    {
+      body: checkFileExistsRequestSchema,
+      response: {
+        200: checkFileExistsResponseSchema,
+      },
+      detail: {
+        summary: 'Check if file exists',
+      },
+    },
+  )
+  .post(
+    'delete-file',
+    async ({ body, logger }) => {
+      const { filepath } = body;
+      const fileService = new FileService(logger);
+      const result = await fileService.deleteFile(filepath);
+      return createSuccessResponse(result);
+    },
+    {
+      body: deleteFileRequestSchema,
+      response: {
+        200: deleteFileResponseSchema,
+      },
+      detail: {
+        summary: 'Delete file',
       },
     },
   );

@@ -10,6 +10,7 @@ import {
 import { Glob } from 'bun';
 import type { Logger } from '@/infrastructure/logging';
 import {
+  FileDeleteResult,
   FileFindResult,
   FileReadResult,
   FileReplaceResult,
@@ -23,6 +24,7 @@ export class FileService {
 
   ensureFile(filepath: string) {
     if (!fs.existsSync(filepath)) {
+      this.logger.error('File does not exist: {filepath}', { filepath });
       throw new NotFoundException(`File does not exist: ${filepath}`);
     }
   }
@@ -243,5 +245,13 @@ export class FileService {
         `Error uploading file: ${filepath}`,
       );
     }
+  }
+
+  async deleteFile(filepath: string) {
+    this.ensureFile(filepath);
+
+    const file = Bun.file(filepath);
+    await file.delete();
+    return new FileDeleteResult(filepath, true);
   }
 }
