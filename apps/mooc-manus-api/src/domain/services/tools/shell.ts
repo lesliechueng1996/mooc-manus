@@ -7,7 +7,7 @@ export class ShellToolCollection extends ToolCollection {
   }
 
   @tool({
-    name: 'shell_exec',
+    name: 'shell_execute',
     description:
       'Execute a command in a specified shell session. Can be used to run code, install dependencies, or manage files.',
     parameters: {
@@ -27,7 +27,7 @@ export class ShellToolCollection extends ToolCollection {
     },
     required: ['sessionId', 'execDir', 'command'],
   })
-  async shellExec(params: {
+  async shellExecute(params: {
     sessionId: string;
     execDir: string;
     command: string;
@@ -40,7 +40,7 @@ export class ShellToolCollection extends ToolCollection {
   }
 
   @tool({
-    name: 'shell_view',
+    name: 'shell_read_output',
     description:
       'View the content of a specified shell session. Used to check command execution results or monitor output.',
     parameters: {
@@ -56,7 +56,7 @@ export class ShellToolCollection extends ToolCollection {
   }
 
   @tool({
-    name: 'shell_wait',
+    name: 'shell_wait_process',
     description:
       'Wait for a running process in a specified shell session to return. Use after running long-running commands.',
     parameters: {
@@ -76,7 +76,7 @@ export class ShellToolCollection extends ToolCollection {
   }
 
   @tool({
-    name: 'shell_write_to_process',
+    name: 'shell_write_input',
     description:
       'Write input to a running process in a specified shell session. Used to respond to interactive command prompts.',
     parameters: {
