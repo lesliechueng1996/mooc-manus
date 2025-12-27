@@ -8,14 +8,56 @@ ENV HOSTNAME=mooc-manus-sandbox
 
 # Development stage for dev container
 FROM base AS development
-# Install base dependencies
+
+# Install base dependencies including Python, Node.js, Chromium, and fonts for full development environment
 RUN apt-get update && apt-get install -y \
     ca-certificates git curl unzip sudo supervisor \
+    xterm socat xvfb x11vnc websockify \
+    gnupg software-properties-common \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Python 3.10 with full capabilities
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.10 python3.10-venv python3.10-dev python3-pip && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 24
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Chromium and fonts (combined to reduce layers)
+RUN add-apt-repository ppa:xtradeb/apps -y && \
+    apt-get update && \
+    apt-get install -y \
+        chromium --no-install-recommends \
+        fonts-noto-cjk \
+        fonts-noto-color-emoji \
+        language-pack-zh-hans \
+        locales \
+    && locale-gen zh_CN.UTF-8 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=zh_CN.UTF-8 \
+    LANGUAGE=zh_CN:zh \
+    LC_ALL=zh_CN.UTF-8
+
+# Set default CHROME_ARGS (can be overridden at runtime)
+ENV CHROME_ARGS=""
+
 # Install Bun
 COPY --from=bun_binary /usr/local/bin/bun /usr/local/bin/bun
+
 WORKDIR /workspace
-EXPOSE 8081
+EXPOSE 8081 9222 5900 5901
 # Default command for dev container (keeps container running)
 # Dev Container will override this with the actual command
 CMD ["sleep", "infinity"]
@@ -53,7 +95,7 @@ RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu
 
 RUN apt-get update && apt-get install -y \
     sudo ca-certificates bc curl wget gnupg software-properties-common supervisor \
-    xterm \
+    xterm socat xvfb x11vnc websockify \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -81,12 +123,32 @@ RUN mkdir -p /etc/apt/keyrings && \
 
 RUN npm config set registry https://registry.npmmirror.com
 
+# Install Chromium and fonts (combined to reduce layers)
+RUN add-apt-repository ppa:xtradeb/apps -y && \
+    apt-get update && \
+    apt-get install -y \
+        chromium --no-install-recommends \
+        fonts-noto-cjk \
+        fonts-noto-color-emoji \
+        language-pack-zh-hans \
+        locales \
+    && locale-gen zh_CN.UTF-8 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=zh_CN.UTF-8 \
+    LANGUAGE=zh_CN:zh \
+    LC_ALL=zh_CN.UTF-8
+
+# Set default CHROME_ARGS (can be overridden at runtime)
+ENV CHROME_ARGS=""
+
 WORKDIR /workspace
 
 COPY --from=builder /workspace/server ./server
-COPY apps/mooc-manus-sandbox/supervisord.conf /etc/supervisor/conf.d/sandbox.conf
+COPY apps/mooc-manus-sandbox/supervisord.conf /etc/supervisord.conf
 
 # 8081(API) 9222(CDP) 5900(VNC) 5901(WebSocket)
 EXPOSE 8081 9222 5900 5901
 
-CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/sandbox.conf"]
+CMD ["supervisord", "-n", "-c", "/etc/supervisord.conf"]
