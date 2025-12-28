@@ -17,7 +17,27 @@ export const getProcessInfoResponseSchema = createSuccessResponseSchema(
       logfile: z.string().describe('Process log file'),
       stdoutLogfile: z.string().describe('Process stdout log file'),
       stderrLogfile: z.string().describe('Process stderr log file'),
-      pid: z.string().describe('Process PID'),
+      pid: z.number().describe('Process PID'),
     }),
   ),
+);
+
+const supervisorActionResult = z.object({
+  status: z.string().describe('Execution status'),
+  result: z.any().describe('Execution result'),
+  stopResult: z.any().describe('Stop result'),
+  startResult: z.any().describe('Start result'),
+  shutdownResult: z.any().describe('Shutdown result'),
+});
+
+export const stopAllProcessesResponseSchema = createSuccessResponseSchema(
+  supervisorActionResult,
+);
+
+export const shutdownResponseSchema = createSuccessResponseSchema(
+  supervisorActionResult,
+);
+
+export const restartResponseSchema = createSuccessResponseSchema(
+  supervisorActionResult,
 );

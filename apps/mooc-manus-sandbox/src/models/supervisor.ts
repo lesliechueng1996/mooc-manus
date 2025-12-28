@@ -12,26 +12,39 @@ export class ProcessInfo extends Schema.Class<ProcessInfo>('ProcessInfo')({
   spawnerr: Schema.String,
   exitstatus: Schema.Number,
   logfile: Schema.String,
-  stdout_logfile: Schema.String,
-  stderr_logfile: Schema.String,
-  pid: Schema.String,
-}) {
-  format() {
-    return {
-      name: this.name,
-      group: this.group,
-      description: this.description,
-      start: this.start,
-      stop: this.stop,
-      now: this.now,
-      state: this.state,
-      statename: this.statename,
-      spawnerr: this.spawnerr,
-      exitstatus: this.exitstatus,
-      logfile: this.logfile,
-      stdoutLogfile: this.stdout_logfile,
-      stderrLogfile: this.stderr_logfile,
-      pid: this.pid,
-    };
-  }
+  stdoutLogfile: Schema.propertySignature(Schema.String).pipe(
+    Schema.fromKey('stdout_logfile'),
+  ),
+  stderrLogfile: Schema.propertySignature(Schema.String).pipe(
+    Schema.fromKey('stderr_logfile'),
+  ),
+  pid: Schema.Number,
+}) {}
+
+export enum SupervisorActionResultStatus {
+  STOPPED = 'stopped',
+  SHUTDOWN = 'shutdown',
+  RESTARTED = 'restarted',
 }
+
+export class SupervisorActionResult extends Schema.Class<SupervisorActionResult>(
+  'SupervisorActionResult',
+)({
+  status: Schema.Enums(SupervisorActionResultStatus),
+  result: Schema.optionalWith(Schema.Any, {
+    default: () => null,
+    nullable: true,
+  }),
+  stopResult: Schema.optionalWith(Schema.Any, {
+    default: () => null,
+    nullable: true,
+  }),
+  startResult: Schema.optionalWith(Schema.Any, {
+    default: () => null,
+    nullable: true,
+  }),
+  shutdownResult: Schema.optionalWith(Schema.Any, {
+    default: () => null,
+    nullable: true,
+  }),
+}) {}

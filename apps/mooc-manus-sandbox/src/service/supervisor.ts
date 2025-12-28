@@ -2,7 +2,11 @@ import { Schema } from 'effect';
 import xmlrpc from 'xmlrpc';
 import type { Logger } from '@/infrastructure/logging';
 import { InternalServerErrorException } from '@/interface/error/exception';
-import { ProcessInfo } from '@/models/supervisor';
+import {
+  ProcessInfo,
+  SupervisorActionResult,
+  SupervisorActionResultStatus,
+} from '@/models/supervisor';
 
 export class SupervisorService {
   private readonly client: xmlrpc.Client;
@@ -43,6 +47,58 @@ export class SupervisorService {
     } catch (error) {
       this.logger.error('Error getting all process info.', { error });
       throw new InternalServerErrorException('Error getting all process info.');
+    }
+  }
+
+  async stopAllProcesses(): Promise<SupervisorActionResult> {
+    try {
+      const result = (await this.callRpc(
+        'supervisor.stopAllProcesses',
+        [],
+      )) as unknown;
+      return SupervisorActionResult.make({
+        status: SupervisorActionResultStatus.STOPPED,
+        result,
+      });
+    } catch (error) {
+      this.logger.error('Supervisor stop all processes failed.', { error });
+      throw new InternalServerErrorException(
+        'Supervisor stop all processes failed.',
+      );
+    }
+  }
+
+  async shutdown(): Promise<SupervisorActionResult> {
+    try {
+      const result = (await this.callRpc('supervisor.shutdown', [])) as unknown;
+      return SupervisorActionResult.make({
+        status: SupervisorActionResultStatus.SHUTDOWN,
+        shutdownResult: result,
+      });
+    } catch (error) {
+      this.logger.error('Supervisor shutdown failed.', { error });
+      throw new InternalServerErrorException('Supervisor shutdown failed.');
+    }
+  }
+
+  async restart() {
+    try {
+      const stopResult = (await this.callRpc(
+        'supervisor.stopAllProcesses',
+        [],
+      )) as unknown;
+      const startResult = (await this.callRpc(
+        'supervisor.startAllProcesses',
+        [],
+      )) as unknown;
+      return SupervisorActionResult.make({
+        status: SupervisorActionResultStatus.RESTARTED,
+        stopResult,
+        startResult,
+      });
+    } catch (error) {
+      this.logger.error('Supervisor restart failed.', { error });
+      throw new InternalServerErrorException('Supervisor restart failed.');
     }
   }
 }
