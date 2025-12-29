@@ -143,8 +143,8 @@ export const downloadFileRequestSchema = z.object({
 });
 
 export const downloadFileResponseSchema = z
-  .instanceof(ElysiaFile)
-  .describe('Downloaded file');
+  .unknown()
+  .describe('Downloaded file (binary content)');
 
 export const checkFileExistsRequestSchema = z.object({
   filepath: z.string().describe('Absolute path of the file to check'),

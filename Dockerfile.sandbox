@@ -5,6 +5,10 @@ FROM oven/bun:1.3.5 AS bun_binary
 FROM ubuntu:22.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 ENV HOSTNAME=mooc-manus-sandbox
+ENV LOG_LEVEL="info"
+ENV SUPERVISOR_HOST="127.0.0.1"
+ENV SUPERVISOR_PORT="9001"
+ENV SERVER_TIMEOUT_MINUTES="60"
 
 # Development stage for dev container
 FROM base AS development
@@ -142,6 +146,12 @@ ENV LANG=zh_CN.UTF-8 \
 
 # Set default CHROME_ARGS (can be overridden at runtime)
 ENV CHROME_ARGS=""
+
+# Application environment variables (can be overridden at runtime)
+ENV LOG_LEVEL="info" \
+    SUPERVISOR_HOST="127.0.0.1" \
+    SUPERVISOR_PORT="9001" \
+    SERVER_TIMEOUT_MINUTES="60"
 
 WORKDIR /workspace
 

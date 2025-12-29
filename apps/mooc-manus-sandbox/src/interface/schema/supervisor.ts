@@ -24,10 +24,10 @@ export const getProcessInfoResponseSchema = createSuccessResponseSchema(
 
 const supervisorActionResult = z.object({
   status: z.string().describe('Execution status'),
-  result: z.any().describe('Execution result'),
-  stopResult: z.any().describe('Stop result'),
-  startResult: z.any().describe('Start result'),
-  shutdownResult: z.any().describe('Shutdown result'),
+  result: z.unknown().nullable().describe('Execution result'),
+  stopResult: z.unknown().nullable().describe('Stop result'),
+  startResult: z.unknown().nullable().describe('Start result'),
+  shutdownResult: z.unknown().nullable().describe('Shutdown result'),
 });
 
 export const stopAllProcessesResponseSchema = createSuccessResponseSchema(
