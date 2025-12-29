@@ -41,3 +41,43 @@ export const shutdownResponseSchema = createSuccessResponseSchema(
 export const restartResponseSchema = createSuccessResponseSchema(
   supervisorActionResult,
 );
+
+export const activateTimeoutRequestSchema = z.object({
+  minutes: z
+    .int()
+    .min(1)
+    .optional()
+    .nullable()
+    .default(null)
+    .describe('Timeout minutes'),
+});
+
+const timeoutResult = z.object({
+  status: z.string().nullable().describe('Execution status'),
+  active: z.boolean().describe('Execution active'),
+  shutdownTime: z.string().nullable().describe('Shutdown time'),
+  timeoutMinutes: z.number().nullable().describe('Timeout minutes'),
+  remainingSeconds: z.number().nullable().describe('Remaining seconds'),
+});
+
+export const activateTimeoutResponseSchema =
+  createSuccessResponseSchema(timeoutResult);
+
+export const extendTimeoutRequestSchema = z.object({
+  minutes: z
+    .int()
+    .min(1)
+    .optional()
+    .nullable()
+    .default(null)
+    .describe('Timeout minutes'),
+});
+
+export const extendTimeoutResponseSchema =
+  createSuccessResponseSchema(timeoutResult);
+
+export const cancelTimeoutResponseSchema =
+  createSuccessResponseSchema(timeoutResult);
+
+export const getTimeoutStatusResponseSchema =
+  createSuccessResponseSchema(timeoutResult);

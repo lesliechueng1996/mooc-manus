@@ -12,6 +12,7 @@ import { fileRouter } from './interface/endpoint/file-router';
 import { shellRouter } from './interface/endpoint/shell-router';
 import { supervisorRouter } from './interface/endpoint/supervisor';
 import { httpLog } from './interface/plugin/http-log';
+import { keepAlive } from './interface/plugin/keep-alive';
 import { logger as loggerPlugin } from './interface/plugin/logger';
 import { requestId } from './interface/plugin/request-id';
 import { userId } from './interface/plugin/user-id';
@@ -33,6 +34,7 @@ const apiRouter = new Elysia({ name: 'api-router' }).group(
       .use(requestId)
       .use(httpLog)
       .use(userId)
+      .use(keepAlive)
       .onError(({ code, error, status, logger }) => {
         if (code === 'VALIDATION') {
           logger.error('Validation error occurred', { error });

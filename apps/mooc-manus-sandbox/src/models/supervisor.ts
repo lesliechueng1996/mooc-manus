@@ -48,3 +48,21 @@ export class SupervisorActionResult extends Schema.Class<SupervisorActionResult>
     nullable: true,
   }),
 }) {}
+
+export class SupervisorTimeoutResult extends Schema.Class<SupervisorTimeoutResult>(
+  'SupervisorTimeoutResult',
+)({
+  status: Schema.optionalWith(Schema.NullOr(Schema.String), {
+    default: () => null,
+  }),
+  active: Schema.Boolean,
+  shutdownTime: Schema.optionalWith(Schema.NullOr(Schema.String), {
+    default: () => null,
+  }),
+  timeoutMinutes: Schema.optionalWith(Schema.NullOr(Schema.Number), {
+    default: () => null,
+  }),
+  remainingSeconds: Schema.optionalWith(Schema.NullOr(Schema.Number), {
+    default: () => null,
+  }),
+}) {}

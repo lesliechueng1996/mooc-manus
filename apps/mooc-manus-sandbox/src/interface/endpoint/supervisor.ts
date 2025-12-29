@@ -1,9 +1,15 @@
 import { createSuccessResponse } from '@repo/common';
 import { Elysia } from 'elysia';
-import { SupervisorService } from '@/service/supervisor';
+import { disableExpand, SupervisorService } from '@/service/supervisor';
 import { logger as loggerPlugin } from '../plugin/logger';
 import {
+  activateTimeoutRequestSchema,
+  activateTimeoutResponseSchema,
+  cancelTimeoutResponseSchema,
+  extendTimeoutRequestSchema,
+  extendTimeoutResponseSchema,
   getProcessInfoResponseSchema,
+  getTimeoutStatusResponseSchema,
   restartResponseSchema,
   shutdownResponseSchema,
   stopAllProcessesResponseSchema,
@@ -76,6 +82,74 @@ export const supervisorRouter = new Elysia({
       },
       detail: {
         summary: 'Restart supervisor',
+      },
+    },
+  )
+  .post(
+    '/activate-timeout',
+    async ({ body, logger }) => {
+      const supervisorService = new SupervisorService(logger);
+      const result = await supervisorService.activateTimeout(body.minutes);
+      disableExpand();
+      return createSuccessResponse(result);
+    },
+    {
+      body: activateTimeoutRequestSchema,
+      response: {
+        200: activateTimeoutResponseSchema,
+      },
+      detail: {
+        summary: 'Activate timeout',
+      },
+    },
+  )
+  .post(
+    '/extend-timeout',
+    async ({ body, logger }) => {
+      const supervisorService = new SupervisorService(logger);
+      const result = await supervisorService.extendTimeout(body.minutes);
+      disableExpand();
+      return createSuccessResponse(result);
+    },
+    {
+      body: extendTimeoutRequestSchema,
+      response: {
+        200: extendTimeoutResponseSchema,
+      },
+      detail: {
+        summary: 'Extend timeout',
+      },
+    },
+  )
+  .post(
+    '/cancel-timeout',
+    async ({ logger }) => {
+      const supervisorService = new SupervisorService(logger);
+      const result = await supervisorService.cancelTimeout();
+      return createSuccessResponse(result);
+    },
+    {
+      response: {
+        200: cancelTimeoutResponseSchema,
+      },
+      detail: {
+        summary: 'Cancel timeout',
+      },
+    },
+  )
+  .get(
+    '/timeout-status',
+    async ({ logger }) => {
+      const supervisorService = new SupervisorService(logger);
+      const result = await supervisorService.getTimeoutStatus();
+      return createSuccessResponse(result);
+    },
+    {
+      response: {
+        200: getTimeoutStatusResponseSchema,
+      },
+      detail: {
+        summary: 'Get timeout status',
       },
     },
   );
