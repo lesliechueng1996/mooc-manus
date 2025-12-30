@@ -1,7 +1,9 @@
 import { RedisClient as BunRedisClient, randomUUIDv7 } from 'bun';
 import type { Logger } from '../logging';
 
-const client = new BunRedisClient();
+const client = new BunRedisClient(
+  `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}/${process.env.REDIS_QUEUE_DB || '0'}`,
+);
 
 const luaScript = `
 if redis.call("get", KEYS[1]) == ARGV[1] then

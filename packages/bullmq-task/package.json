@@ -1,0 +1,20 @@
+{
+  "name": "@repo/bullmq-task",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "biome check",
+    "format": "biome check --write"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "bullmq": "^5.66.4",
+    "ioredis": "^5.8.2"
+  }
+}

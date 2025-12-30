@@ -14,6 +14,7 @@ import { httpLog } from './interface/plugin/http-log';
 import { logger as loggerPlugin } from './interface/plugin/logger';
 import { requestId } from './interface/plugin/request-id';
 import { userId } from './interface/plugin/user-id';
+import { worker } from './interface/plugin/worker';
 
 await createAPILoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
 const logger = getLogger();
@@ -77,6 +78,7 @@ const app = new Elysia()
       },
     }),
   )
+  .use(worker)
   .use(apiRouter)
   .listen(8080);
 

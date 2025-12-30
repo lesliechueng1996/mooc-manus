@@ -24,6 +24,7 @@
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@repo/api-tool": "workspace:*",
     "@repo/builtin-tool": "workspace:*",
+    "@repo/bullmq-task": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/dataset": "workspace:*",
     "@repo/prisma-database": "workspace:*",

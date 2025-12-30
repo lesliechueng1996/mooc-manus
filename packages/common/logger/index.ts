@@ -23,12 +23,23 @@ export const createUILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
         maxSize: 1024 * 1024 * 5,
         maxFiles: 5,
       }),
+      // Independent sink for meta logger (optional, for logging logging system's own errors)
+      metaFile: getRotatingFileSink('mooc-manus-ui-meta.log', {
+        maxSize: 1024 * 1024 * 5,
+        maxFiles: 3,
+      }),
     },
     loggers: [
       {
         category: 'mooc-manus-ui',
         lowestLevel: logLevel.toLowerCase() as LogLevel,
         sinks: ['console', 'file'],
+      },
+      // Configure meta logger: hide info messages, only log warnings and errors
+      {
+        category: ['logtape', 'meta'],
+        lowestLevel: 'warning', // Set to 'warning' or 'error' to hide info-level messages
+        sinks: ['metaFile'], // Optional: output meta logs to a separate file
       },
     ],
   });
@@ -47,12 +58,23 @@ export const createAPILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
         maxSize: 1024 * 1024 * 5,
         maxFiles: 5,
       }),
+      // Independent sink for meta logger (optional, for logging logging system's own errors)
+      metaFile: getRotatingFileSink('mooc-manus-api-meta.log', {
+        maxSize: 1024 * 1024 * 5,
+        maxFiles: 3,
+      }),
     },
     loggers: [
       {
         category: 'mooc-manus-api',
         lowestLevel: logLevel.toLowerCase() as LogLevel,
         sinks: ['console', 'file'],
+      },
+      // Configure meta logger: hide info messages, only log warnings and errors
+      {
+        category: ['logtape', 'meta'],
+        lowestLevel: 'warning', // Set to 'warning' or 'error' to hide info-level messages
+        sinks: ['metaFile'], // Optional: output meta logs to a separate file
       },
     ],
   });
@@ -73,12 +95,23 @@ export const createSandboxLoggerConfiguration = (
         maxSize: 1024 * 1024 * 5,
         maxFiles: 5,
       }),
+      // Independent sink for meta logger (optional, for logging logging system's own errors)
+      metaFile: getRotatingFileSink('mooc-manus-sandbox-meta.log', {
+        maxSize: 1024 * 1024 * 5,
+        maxFiles: 3,
+      }),
     },
     loggers: [
       {
         category: 'mooc-manus-sandbox',
         lowestLevel: logLevel.toLowerCase() as LogLevel,
         sinks: ['console', 'file'],
+      },
+      // Configure meta logger: hide info messages, only log warnings and errors
+      {
+        category: ['logtape', 'meta'],
+        lowestLevel: 'warning', // Set to 'warning' or 'error' to hide info-level messages
+        sinks: ['metaFile'], // Optional: output meta logs to a separate file
       },
     ],
   });
