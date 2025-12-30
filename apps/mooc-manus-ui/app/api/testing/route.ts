@@ -1,9 +1,9 @@
 import {
-  createBullmqQueue,
-  DOCUMENT_QUEUE_NAME,
-  DATASET_QUEUE_NAME,
   BUILD_DOCUMENTS_TASK_NAME,
+  createBullmqQueue,
+  DATASET_QUEUE_NAME,
   DELETE_DATASET_TASK_NAME,
+  DOCUMENT_QUEUE_NAME,
 } from '@repo/bullmq-task';
 
 const documentQueue = createBullmqQueue(DOCUMENT_QUEUE_NAME);

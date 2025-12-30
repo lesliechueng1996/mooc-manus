@@ -1,5 +1,4 @@
 import { createSuccessResponseSchema } from '@repo/common';
-import { ElysiaFile } from 'elysia';
 import { z } from 'zod';
 
 export const readFileRequestSchema = z.object({
