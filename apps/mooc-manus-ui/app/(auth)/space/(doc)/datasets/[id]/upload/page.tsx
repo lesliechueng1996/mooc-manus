@@ -3,11 +3,12 @@
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { defineStepper } from '@/components/ui/stepper';
 import ChunkingStrategy, {
+  type ChunkingStrategyRef,
   type ChunkingStrategyType,
 } from './_components/ChunkingStrategy';
 import DataProcessing from './_components/DataProcessing';
@@ -43,6 +44,7 @@ const UploadFilePage = () => {
       processType: 'automatic',
     },
   });
+  const chunkingStrategyRef = useRef<ChunkingStrategyRef>(null);
 
   const currentIndex = utils.getIndex(stepper.current.id);
 
@@ -52,6 +54,16 @@ const UploadFilePage = () => {
 
   const handleActionEnd = () => {
     setCanChangePage(true);
+  };
+
+  const handleNext = () => {
+    if (stepper.current.id === 'chunking-strategy') {
+      const isValid = chunkingStrategyRef.current?.validate();
+      if (!isValid) {
+        return;
+      }
+    }
+    stepper.next();
   };
 
   return (
@@ -118,6 +130,7 @@ const UploadFilePage = () => {
             ),
             'chunking-strategy': () => (
               <ChunkingStrategy
+                ref={chunkingStrategyRef}
                 chunkingStrategy={uploadFileData.chunkingStrategy}
                 onUpdate={(chunkingStrategy) =>
                   setUploadFileData((prev) => ({ ...prev, chunkingStrategy }))
@@ -137,7 +150,7 @@ const UploadFilePage = () => {
               >
                 Back
               </Button>
-              <Button onClick={stepper.next} disabled={!canChangePage}>
+              <Button onClick={handleNext} disabled={!canChangePage}>
                 {stepper.isLast ? 'Complete' : 'Next'}
               </Button>
             </div>
