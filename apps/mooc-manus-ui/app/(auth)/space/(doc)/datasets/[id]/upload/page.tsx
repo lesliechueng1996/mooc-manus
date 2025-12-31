@@ -3,7 +3,7 @@
 import { ProcessType } from '@repo/dataset';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createDocumentsAction } from '@/actions/dataset-action';
@@ -49,6 +49,7 @@ const UploadFilePage = () => {
   });
   const [batch, setBatch] = useState<string | undefined>();
   const chunkingStrategyRef = useRef<ChunkingStrategyRef>(null);
+  const router = useRouter();
 
   const currentIndex = utils.getIndex(stepper.current.id);
 
@@ -97,6 +98,10 @@ const UploadFilePage = () => {
       } finally {
         handleActionEnd();
       }
+    }
+    if (stepper.current.id === 'data-processing') {
+      router.replace(`/space/datasets/${id}/documents`);
+      return;
     }
     stepper.next();
   };
@@ -169,7 +174,9 @@ const UploadFilePage = () => {
                 initialChunkingStrategy={uploadFileData.chunkingStrategy}
               />
             ),
-            'data-processing': () => <DataProcessing batch={batch} />,
+            'data-processing': () => (
+              <DataProcessing batch={batch} datasetId={id} />
+            ),
           })}
         </div>
         <div className="shrink-0 pt-4 pb-6">

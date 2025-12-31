@@ -1,7 +1,9 @@
 'use client';
 
 import { FileSignal } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { getDocumentsByBatchAction } from '@/actions/dataset-action';
 
 const formatFileSize = (fileSize: number) => {
   if (fileSize < 1024) {
@@ -15,9 +17,10 @@ const formatFileSize = (fileSize: number) => {
 
 type Props = {
   batch: string | undefined;
+  datasetId: string;
 };
 
-const DataProcessing = ({ batch }: Props) => {
+const DataProcessing = ({ batch, datasetId }: Props) => {
   const [documents, setDocuments] = useState<
     {
       id: string;
@@ -26,8 +29,40 @@ const DataProcessing = ({ batch }: Props) => {
       progress: number;
     }[]
   >([]);
+  const timer = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (!batch) {
+      return;
+    }
+    if (timer.current) {
+      clearInterval(timer.current);
+    }
+    timer.current = setInterval(async () => {
+      const result = await getDocumentsByBatchAction({
+        datasetId: datasetId,
+        batchId: batch,
+      });
+      if (!result?.data) {
+        toast.error('Failed to get documents by batch');
+        return;
+      }
+      setDocuments(
+        result.data.map((document) => ({
+          id: document.id,
+          name: document.name,
+          fileSize: document.size,
+          progress:
+            document.status === 'completed'
+              ? 100
+              : Math.round(
+                  (document.completedSegmentCount / document.segmentCount) *
+                    100,
+                ),
+        })),
+      );
+    }, 3000);
+  }, [batch, datasetId]);
 
   return (
     <div>

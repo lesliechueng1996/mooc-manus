@@ -6,6 +6,7 @@ import {
   createDocumentsReqSchema,
   deleteDatasetReqSchema,
   getDatasetListReqSchema,
+  getDocumentsByBatchReqSchema,
   updateDatasetReqSchema,
 } from '@/schemas/dataset-schema';
 import {
@@ -13,6 +14,7 @@ import {
   createDocuments,
   DEFAULT_PROCESS_RULE,
   deleteDataset,
+  getDocumentsByBatch,
   listDatasetsByPage,
   updateDataset,
 } from '@/services/dataset-service';
@@ -67,4 +69,17 @@ export const createDocumentsAction = authActionClient
       processType: parsedInput.processType,
       rule: parsedInput.rule ?? DEFAULT_PROCESS_RULE.rule,
     });
+  });
+
+export const getDocumentsByBatchAction = authActionClient
+  .inputSchema(getDocumentsByBatchReqSchema)
+  .metadata({
+    actionName: 'getDocumentsByBatch',
+  })
+  .action(async ({ parsedInput, ctx: { userId } }) => {
+    return await getDocumentsByBatch(
+      parsedInput.datasetId,
+      parsedInput.batchId,
+      userId,
+    );
   });

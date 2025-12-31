@@ -117,3 +117,8 @@ export const createDocumentsReqSchema = z
     }
     return data;
   });
+
+export const getDocumentsByBatchReqSchema = z.object({
+  datasetId: z.string(),
+  batchId: z.string(),
+});

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { getLogger, NotFoundException } from '@repo/common';
-import { prisma } from '@repo/prisma-database';
+import { type Prisma, prisma } from '@repo/prisma-database';
 import { format } from 'date-fns';
 import { buildDocumentsAyncTask } from '../task/document-task';
 import {
@@ -117,4 +117,113 @@ export const createDocuments = async (
     })),
     batch: batchId,
   };
+};
+
+export const getDocumentsByBatch = async (
+  datasetId: string,
+  batchId: string,
+  userId: string,
+) => {
+  const logger = getLogger();
+
+  const docs = await prisma.document.findMany({
+    where: {
+      userId,
+      batch: batchId,
+      datasetId,
+    },
+  });
+
+  if (docs.length === 0) {
+    logger.warn(`No documents found for batch: {batchId}`, { batchId });
+    throw new NotFoundException('No documents found for batch');
+  }
+
+  const uploadFileIds = docs.map((doc) => doc.uploadFileId);
+  const uploadFileQuery = prisma.uploadFile.findMany({
+    where: {
+      id: {
+        in: uploadFileIds,
+      },
+    },
+  });
+  const segmentQuery = prisma.segment.groupBy({
+    by: ['documentId'],
+    _count: {
+      id: true,
+    },
+    where: {
+      userId,
+      datasetId,
+      documentId: {
+        in: docs.map((doc) => doc.id),
+      },
+    },
+  });
+
+  const completedSegmentQuery = prisma.segment.groupBy({
+    by: ['documentId'],
+    _count: {
+      id: true,
+    },
+    where: {
+      userId,
+      datasetId,
+      documentId: {
+        in: docs.map((doc) => doc.id),
+      },
+      status: DocumentStatus.COMPLETED,
+    },
+  });
+
+  const [uploadFileRecords, segmentRecords, completedSegmentRecords] =
+    await Promise.all([uploadFileQuery, segmentQuery, completedSegmentQuery]);
+
+  const uploadFileMap = uploadFileRecords.reduce(
+    (acc, record) => {
+      acc[record.id] = record;
+      return acc;
+    },
+    {} as Record<string, Prisma.UploadFileModel>,
+  );
+
+  const docSegmentCountMap = segmentRecords.reduce(
+    (acc, record) => {
+      acc[record.documentId] = record._count.id;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  const docCompletedSegmentCountMap = completedSegmentRecords.reduce(
+    (acc, record) => {
+      acc[record.documentId] = record._count.id;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  return docs.map((doc) => {
+    const uploadFileRecord = uploadFileMap[doc.uploadFileId];
+
+    return {
+      id: doc.id,
+      name: doc.name,
+      size: uploadFileRecord?.size ?? 0,
+      extension: uploadFileRecord?.extension ?? 'N/A',
+      mimeType: uploadFileRecord?.mimeType ?? 'N/A',
+      position: doc.position,
+      segmentCount: docSegmentCountMap[doc.id] ?? 0,
+      completedSegmentCount: docCompletedSegmentCountMap[doc.id] ?? 0,
+      error: doc.error ?? '',
+      status: doc.status as DocumentStatus,
+      processingStartedAt: doc.processingStartedAt?.getTime() ?? 0,
+      parsingCompletedAt: doc.parsingCompletedAt?.getTime() ?? 0,
+      splittingCompletedAt: doc.splittingCompletedAt?.getTime() ?? 0,
+      indexingCompletedAt: doc.indexingCompletedAt?.getTime() ?? 0,
+      completedAt: doc.completedAt?.getTime() ?? 0,
+      stoppedAt: doc.stoppedAt?.getTime() ?? 0,
+      createdAt: doc.createdAt.getTime(),
+    };
+  });
 };
