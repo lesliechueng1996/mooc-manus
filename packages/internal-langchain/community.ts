@@ -1,3 +1,11 @@
 export * from '@langchain/community';
 export { DuckDuckGoSearch } from '@langchain/community/tools/duckduckgo_search';
 export { WikipediaQueryRun } from '@langchain/community/tools/wikipedia_query_run';
+export { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
+export { CSVLoader } from '@langchain/community/document_loaders/fs/csv';
+export { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
+export { PPTXLoader } from '@langchain/community/document_loaders/fs/pptx';
+export { UnstructuredLoader } from '@langchain/community/document_loaders/fs/unstructured';
+export { JSONLoader } from '@langchain/classic/document_loaders/fs/json';
+export { TextLoader } from '@langchain/classic/document_loaders/fs/text';
+export type { DocumentLoader } from '@langchain/core/document_loaders/base';

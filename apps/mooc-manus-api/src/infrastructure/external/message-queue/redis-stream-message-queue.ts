@@ -1,3 +1,4 @@
+import { randomUUIDv7 } from 'bun';
 import type {
   Message,
   MessageData,
@@ -65,6 +66,7 @@ export class RedisStreamMessageQueue implements MessageQueue {
     const lockKey = `lock:${this.streamName}:pop`;
     const lockValue = await this.redisClient.acquireLock(
       lockKey,
+      randomUUIDv7(),
       lockExpireSeconds,
       10,
     );

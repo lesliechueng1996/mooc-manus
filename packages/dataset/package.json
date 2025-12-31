@@ -10,7 +10,9 @@
   "dependencies": {
     "@repo/common": "workspace:*",
     "@repo/prisma-database": "workspace:*",
-    "@repo/bullmq-task": "workspace:*"
+    "@repo/bullmq-task": "workspace:*",
+    "@repo/internal-langchain": "workspace:*",
+    "@repo/tencent-cos": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

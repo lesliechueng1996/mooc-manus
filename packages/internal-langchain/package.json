@@ -14,9 +14,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@langchain/classic": "^1.0.7",
     "@langchain/community": "^1.1.1",
-    "@langchain/core": "^1.1.7",
+    "@langchain/core": "^1.1.8",
     "@langchain/openai": "^1.2.0",
-    "langchain": "^1.2.2"
+    "langchain": "^1.2.3",
+    "pdf-parse": "^2.4.5"
   }
 }

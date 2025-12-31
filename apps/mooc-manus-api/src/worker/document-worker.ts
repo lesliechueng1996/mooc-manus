@@ -1,6 +1,9 @@
 /// <reference lib="webworker" />
 
-import type { DocumentTaskData } from '@repo/bullmq-task';
+import {
+  BUILD_DOCUMENTS_TASK_NAME,
+  type DocumentTaskData,
+} from '@repo/bullmq-task';
 import {
   createAPILoggerConfiguration,
   getLogger,
@@ -24,8 +27,8 @@ self.onmessage = async (
       name,
       data,
     });
-    console.log(process.env.LOG_LEVEL);
-    console.log(process.env.DATABASE_URL);
+    if (name === BUILD_DOCUMENTS_TASK_NAME) {
+    }
     self.postMessage({ success: true });
   } catch (error) {
     logger.error('Document worker error', { error });

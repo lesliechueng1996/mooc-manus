@@ -1,4 +1,4 @@
-import * as fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import {
   BadRequestException,
   getLogger,
@@ -15,6 +15,7 @@ import {
   ALLOWED_IMAGE_SIZE,
 } from './constant';
 import { withTempFile } from './temp-file';
+import { createWriteStream } from 'node:fs';
 
 const logger = getLogger();
 
@@ -183,4 +184,27 @@ export const destroyCosClient = () => {
   cosConfig.bucket = '';
   cosConfig.region = '';
   cosClient = null;
+};
+
+export const downloadFile = async (key: string, filePath: string) => {
+  const bucket = process.env.TENCENT_COS_BUCKET ?? '';
+  const region = process.env.TENCENT_COS_REGION ?? '';
+  return new Promise((resolve, reject) => {
+    const cos = getCosClient();
+    cos.getObject(
+      {
+        Bucket: bucket,
+        Region: region,
+        Key: key,
+        Output: createWriteStream(filePath),
+      },
+      (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      },
+    );
+  });
 };

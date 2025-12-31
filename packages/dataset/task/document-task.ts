@@ -1,5 +1,6 @@
 import {
   BUILD_DOCUMENTS_TASK_NAME,
+  type BuildDocumentsTaskData,
   createBullmqQueue,
   DOCUMENT_QUEUE_NAME,
 } from '@repo/bullmq-task';
@@ -7,9 +8,8 @@ import { getLogger } from '@repo/common';
 
 const documentQueue = createBullmqQueue(DOCUMENT_QUEUE_NAME);
 
-export const buildDocumentsAyncTask = (
-  datasetId: string,
-  documentIds: string[],
+export const buildDocumentsAyncTask = async (
+  data: Omit<BuildDocumentsTaskData, 'taskName'>,
 ) => {
   const logger = getLogger();
   logger.info('Building documents async task');
@@ -18,10 +18,7 @@ export const buildDocumentsAyncTask = (
     BUILD_DOCUMENTS_TASK_NAME,
     {
       name: BUILD_DOCUMENTS_TASK_NAME,
-      data: {
-        datasetId,
-        documentIds,
-      },
+      data: { ...data, taskName: BUILD_DOCUMENTS_TASK_NAME },
     },
     {
       removeOnComplete: true,

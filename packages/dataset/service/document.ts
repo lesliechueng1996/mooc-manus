@@ -106,7 +106,12 @@ export const createDocuments = async (
     documentIds: documentIds.join(','),
   });
 
-  buildDocumentsAyncTask(data.datasetId, documentIds);
+  buildDocumentsAyncTask({
+    datasetId: data.datasetId,
+    documentIds,
+    userId,
+    requestId: randomUUID(),
+  });
 
   return {
     documents: processRuleRecord.documents.map((doc) => ({
