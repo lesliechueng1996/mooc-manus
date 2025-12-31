@@ -16,3 +16,10 @@ export enum DocumentStatus {
   COMPLETED = 'completed',
   ERROR = 'error',
 }
+
+export enum SegmentStatus {
+  WAITING = 'waiting',
+  INDEXING = 'indexing',
+  COMPLETED = 'completed',
+  ERROR = 'error',
+}

@@ -17,6 +17,7 @@
     "@logtape/file": "^1.3.5",
     "@logtape/logtape": "^1.3.5",
     "@logtape/pretty": "^1.3.5",
+    "tiktoken": "^1.0.22",
     "zod": "^4.2.1"
   }
 }
