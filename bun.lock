@@ -169,6 +169,7 @@
     "packages/dataset": {
       "name": "@repo/dataset",
       "dependencies": {
+        "@repo/bullmq-task": "workspace:*",
         "@repo/common": "workspace:*",
         "@repo/prisma-database": "workspace:*",
       },

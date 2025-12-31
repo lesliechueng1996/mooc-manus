@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@repo/common": "workspace:*",
-    "@repo/prisma-database": "workspace:*"
+    "@repo/prisma-database": "workspace:*",
+    "@repo/bullmq-task": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

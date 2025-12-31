@@ -1,12 +1,8 @@
 'use client';
 
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import { PreProcessRuleId, ProcessType } from '@repo/dataset';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -21,65 +17,62 @@ import { InputTags } from '@/components/ui/input-tag';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
-export type ChunkingStrategyType = {
-  processType: 'automatic' | 'custom';
-  rule?: {
-    preProcessRules?: Array<{
-      id: 'remove_extra_space' | 'remove_url_and_email';
+type AutomaticChunkingStrategy = {
+  processType: ProcessType.Automatic;
+  rule?: undefined;
+};
+
+type CustomChunkingStrategy = {
+  processType: ProcessType.Custom;
+  rule: {
+    preProcessRules: Array<{
+      id: PreProcessRuleId;
       enabled: boolean;
     }>;
-    segment?: {
-      separators?: Array<string>;
-      chunkSize?: number;
-      chunkOverlap?: number;
+    segment: {
+      separators: Array<string>;
+      chunkSize: number;
+      chunkOverlap: number;
     };
   };
 };
 
+export type ChunkingStrategyType =
+  | AutomaticChunkingStrategy
+  | CustomChunkingStrategy;
+
 export type ChunkingStrategyRef = {
   validate: () => boolean;
+  getChunkingStrategy: () => ChunkingStrategyType;
 };
 
 type Props = {
-  chunkingStrategy: ChunkingStrategyType;
-  onUpdate: (chunkingStrategy: ChunkingStrategyType) => void;
+  initialChunkingStrategy: ChunkingStrategyType;
 };
 
 const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
-  ({ chunkingStrategy, onUpdate }, ref) => {
+  ({ initialChunkingStrategy }, ref) => {
+    const [chunkingStrategy, setChunkingStrategy] =
+      useState<ChunkingStrategyType>(initialChunkingStrategy);
+
     const [chunkSizeInput, setChunkSizeInput] = useState<string>(
-      chunkingStrategy.rule?.segment?.chunkSize?.toString() ?? '',
+      initialChunkingStrategy.rule?.segment?.chunkSize?.toString() ?? '',
     );
     const [chunkOverlapInput, setChunkOverlapInput] = useState<string>(
-      chunkingStrategy.rule?.segment?.chunkOverlap?.toString() ?? '',
+      initialChunkingStrategy.rule?.segment?.chunkOverlap?.toString() ?? '',
     );
 
     const separatorsInputRef = useRef<HTMLInputElement>(null);
     const chunkSizeInputRef = useRef<HTMLInputElement>(null);
     const chunkOverlapInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-      const chunkSize = chunkingStrategy.rule?.segment?.chunkSize;
-      const chunkOverlap = chunkingStrategy.rule?.segment?.chunkOverlap;
-      if (chunkSize !== undefined) {
-        setChunkSizeInput(chunkSize.toString());
-      }
-      if (chunkOverlap !== undefined) {
-        setChunkOverlapInput(chunkOverlap.toString());
-      }
-    }, [
-      chunkingStrategy.rule?.segment?.chunkSize,
-      chunkingStrategy.rule?.segment?.chunkOverlap,
-    ]);
-
     const validate = (): boolean => {
-      if (chunkingStrategy.processType === 'automatic') {
+      if (chunkingStrategy.processType === ProcessType.Automatic) {
         return true;
       }
 
-      const separators = chunkingStrategy.rule?.segment?.separators ?? [];
+      const separators = chunkingStrategy.rule.segment.separators;
 
       if (separators.length === 0) {
         separatorsInputRef.current?.focus();
@@ -98,7 +91,7 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
         toast.error('Chunk size must be between 100 and 1000');
         return false;
       }
-      if (chunkingStrategy.rule?.segment?.chunkSize !== chunkSizeNum) {
+      if (chunkingStrategy.rule.segment.chunkSize !== chunkSizeNum) {
         handleChunkSizeChange(chunkSizeNum);
       }
 
@@ -115,63 +108,91 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
         );
         return false;
       }
-      if (chunkingStrategy.rule?.segment?.chunkOverlap !== chunkOverlapNum) {
+      if (chunkingStrategy.rule.segment.chunkOverlap !== chunkOverlapNum) {
         handleChunkOverlapChange(chunkOverlapNum);
       }
 
       return true;
     };
 
+    const getChunkingStrategy = (): ChunkingStrategyType => {
+      return chunkingStrategy;
+    };
+
     useImperativeHandle(ref, () => ({
       validate,
+      getChunkingStrategy,
     }));
-    const handleCardClick = (processType: 'automatic' | 'custom') => () => {
-      onUpdate({ ...chunkingStrategy, processType });
+    const handleCardClick = (processType: ProcessType) => () => {
+      if (processType === ProcessType.Automatic) {
+        setChunkingStrategy({ processType: ProcessType.Automatic });
+      } else {
+        setChunkingStrategy({
+          processType: ProcessType.Custom,
+          rule:
+            chunkingStrategy.processType === ProcessType.Custom
+              ? chunkingStrategy.rule
+              : {
+                  preProcessRules: [],
+                  segment: {
+                    separators: [],
+                    chunkSize: 500,
+                    chunkOverlap: 50,
+                  },
+                },
+        });
+      }
     };
 
     const handleSeparatorsChange: React.Dispatch<
       React.SetStateAction<string[]>
     > = (separators) => {
-      const newSeparators =
-        typeof separators === 'function'
-          ? separators(chunkingStrategy.rule?.segment?.separators ?? [])
-          : separators;
-      onUpdate({
-        ...chunkingStrategy,
-        rule: {
-          ...chunkingStrategy.rule,
-          segment: {
-            ...chunkingStrategy.rule?.segment,
-            separators: newSeparators,
+      if (chunkingStrategy.processType === ProcessType.Custom) {
+        const newSeparators =
+          typeof separators === 'function'
+            ? separators(chunkingStrategy.rule.segment.separators)
+            : separators;
+        setChunkingStrategy({
+          ...chunkingStrategy,
+          rule: {
+            ...chunkingStrategy.rule,
+            segment: {
+              ...chunkingStrategy.rule.segment,
+              separators: newSeparators,
+            },
           },
-        },
-      });
+        });
+      }
     };
 
     const handleChunkSizeChange = (chunkSize: number) => {
-      onUpdate({
-        ...chunkingStrategy,
-        rule: {
-          ...chunkingStrategy.rule,
-          segment: {
-            ...chunkingStrategy.rule?.segment,
-            chunkSize,
+      if (chunkingStrategy.processType === ProcessType.Custom) {
+        setChunkingStrategy({
+          ...chunkingStrategy,
+          rule: {
+            ...chunkingStrategy.rule,
+            segment: {
+              ...chunkingStrategy.rule.segment,
+              chunkSize,
+            },
           },
-        },
-      });
+        });
+      }
     };
 
     const handleChunkOverlapChange = (chunkOverlap: number) => {
-      onUpdate({
-        ...chunkingStrategy,
-        rule: {
-          ...chunkingStrategy.rule,
-          segment: {
-            ...chunkingStrategy.rule?.segment,
-            chunkOverlap,
+      if (chunkingStrategy.processType === ProcessType.Custom) {
+        setChunkingStrategy({
+          ...chunkingStrategy,
+          rule: {
+            ...chunkingStrategy.rule,
+            segment: {
+              ...chunkingStrategy.rule.segment,
+              chunkOverlap,
+            },
           },
-        },
-      });
+        });
+      }
     };
 
     const handleChunkSizeInputChange = (
@@ -217,33 +238,35 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
     };
 
     const handleCheckboxChange =
-      (id: 'remove_extra_space' | 'remove_url_and_email') =>
-      (checked: boolean) => {
-        const currentRules = chunkingStrategy.rule?.preProcessRules ?? [];
-        const updatedRules = currentRules.map((rule) =>
-          rule.id === id ? { ...rule, enabled: checked } : rule,
-        );
+      (id: PreProcessRuleId) => (checked: boolean) => {
+        if (chunkingStrategy.processType === ProcessType.Custom) {
+          const currentRules = chunkingStrategy.rule.preProcessRules;
+          const updatedRules = currentRules.map((rule) =>
+            rule.id === id ? { ...rule, enabled: checked } : rule,
+          );
 
-        if (!currentRules.some((rule) => rule.id === id)) {
-          updatedRules.push({ id, enabled: checked });
+          if (!currentRules.some((rule) => rule.id === id)) {
+            updatedRules.push({ id, enabled: checked });
+          }
+
+          setChunkingStrategy({
+            ...chunkingStrategy,
+            rule: {
+              ...chunkingStrategy.rule,
+              preProcessRules: updatedRules,
+            },
+          });
         }
-
-        onUpdate({
-          ...chunkingStrategy,
-          rule: {
-            ...chunkingStrategy.rule,
-            preProcessRules: updatedRules,
-          },
-        });
       };
 
     return (
       <div className="space-y-8">
         <Card
           className={cn(
-            chunkingStrategy.processType === 'automatic' && 'border-primary',
+            chunkingStrategy.processType === ProcessType.Automatic &&
+              'border-primary',
           )}
-          onClick={handleCardClick('automatic')}
+          onClick={handleCardClick(ProcessType.Automatic)}
         >
           <CardHeader>
             <CardTitle>Automatic Chunking and Cleaning</CardTitle>
@@ -254,9 +277,10 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
         </Card>
         <Card
           className={cn(
-            chunkingStrategy.processType === 'custom' && 'border-primary',
+            chunkingStrategy.processType === ProcessType.Custom &&
+              'border-primary',
           )}
-          onClick={handleCardClick('custom')}
+          onClick={handleCardClick(ProcessType.Custom)}
         >
           <CardHeader>
             <CardTitle>Custom</CardTitle>
@@ -264,7 +288,7 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
               Customize chunking rules, chunk size, and preprocessing rules
             </CardDescription>
           </CardHeader>
-          {chunkingStrategy.processType === 'custom' && (
+          {chunkingStrategy.processType === ProcessType.Custom && (
             <>
               <Separator />
               <CardContent onClick={(e) => e.stopPropagation()}>
@@ -279,7 +303,11 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
                       id="chunk-separators"
                       required
                       placeholder="Enter chunk separators"
-                      value={chunkingStrategy.rule?.segment?.separators ?? []}
+                      value={
+                        chunkingStrategy.processType === ProcessType.Custom
+                          ? chunkingStrategy.rule.segment.separators
+                          : []
+                      }
                       onChange={handleSeparatorsChange}
                     />
                   </Field>
@@ -323,12 +351,15 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
                       <Checkbox
                         id="replace-extra-space"
                         checked={
-                          chunkingStrategy.rule?.preProcessRules?.find(
-                            (rule) => rule.id === 'remove_extra_space',
-                          )?.enabled ?? false
+                          chunkingStrategy.processType === ProcessType.Custom
+                            ? (chunkingStrategy.rule.preProcessRules.find(
+                                (rule) =>
+                                  rule.id === PreProcessRuleId.RemoveExtraSpace,
+                              )?.enabled ?? false)
+                            : false
                         }
                         onCheckedChange={handleCheckboxChange(
-                          'remove_extra_space',
+                          PreProcessRuleId.RemoveExtraSpace,
                         )}
                       />
                       <Label htmlFor="replace-extra-space">
@@ -339,12 +370,16 @@ const ChunkingStrategy = forwardRef<ChunkingStrategyRef, Props>(
                       <Checkbox
                         id="remove-url-and-email"
                         checked={
-                          chunkingStrategy.rule?.preProcessRules?.find(
-                            (rule) => rule.id === 'remove_url_and_email',
-                          )?.enabled ?? false
+                          chunkingStrategy.processType === ProcessType.Custom
+                            ? (chunkingStrategy.rule.preProcessRules.find(
+                                (rule) =>
+                                  rule.id ===
+                                  PreProcessRuleId.RemoveUrlAndEmail,
+                              )?.enabled ?? false)
+                            : false
                         }
                         onCheckedChange={handleCheckboxChange(
-                          'remove_url_and_email',
+                          PreProcessRuleId.RemoveUrlAndEmail,
                         )}
                       />
                       <Label htmlFor="remove-url-and-email">

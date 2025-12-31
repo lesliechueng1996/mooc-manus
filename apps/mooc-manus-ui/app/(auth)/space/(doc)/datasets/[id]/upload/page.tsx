@@ -1,9 +1,12 @@
 'use client';
 
+import { ProcessType } from '@repo/dataset';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { createDocumentsAction } from '@/actions/dataset-action';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { defineStepper } from '@/components/ui/stepper';
@@ -41,9 +44,10 @@ const UploadFilePage = () => {
   const [uploadFileData, setUploadFileData] = useState<UploadFileData>({
     fileids: [],
     chunkingStrategy: {
-      processType: 'automatic',
+      processType: ProcessType.Automatic,
     },
   });
+  const [batch, setBatch] = useState<string | undefined>();
   const chunkingStrategyRef = useRef<ChunkingStrategyRef>(null);
 
   const currentIndex = utils.getIndex(stepper.current.id);
@@ -56,11 +60,42 @@ const UploadFilePage = () => {
     setCanChangePage(true);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (stepper.current.id === 'chunking-strategy') {
       const isValid = chunkingStrategyRef.current?.validate();
       if (!isValid) {
         return;
+      }
+
+      const chunkingStrategy =
+        chunkingStrategyRef.current?.getChunkingStrategy();
+      if (!chunkingStrategy) {
+        toast.error('Failed to get chunking strategy');
+        return;
+      }
+
+      if (chunkingStrategy.processType === ProcessType.Custom) {
+        if (!chunkingStrategy.rule) {
+          toast.error('When using custom chunking strategy, rule is required');
+          return;
+        }
+      }
+      try {
+        handleActionStart();
+        const result = await createDocumentsAction({
+          datasetId: id,
+          uploadFileIds: uploadFileData.fileids,
+          processType: chunkingStrategy.processType,
+          rule: chunkingStrategy.rule,
+        });
+        if (!result?.data) {
+          toast.error('Failed to create documents');
+          return;
+        }
+        const { batch } = result.data;
+        setBatch(batch);
+      } finally {
+        handleActionEnd();
       }
     }
     stepper.next();
@@ -131,13 +166,10 @@ const UploadFilePage = () => {
             'chunking-strategy': () => (
               <ChunkingStrategy
                 ref={chunkingStrategyRef}
-                chunkingStrategy={uploadFileData.chunkingStrategy}
-                onUpdate={(chunkingStrategy) =>
-                  setUploadFileData((prev) => ({ ...prev, chunkingStrategy }))
-                }
+                initialChunkingStrategy={uploadFileData.chunkingStrategy}
               />
             ),
-            'data-processing': () => <DataProcessing />,
+            'data-processing': () => <DataProcessing batch={batch} />,
           })}
         </div>
         <div className="shrink-0 pt-4 pb-6">

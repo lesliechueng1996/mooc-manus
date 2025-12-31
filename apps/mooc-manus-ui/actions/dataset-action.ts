@@ -3,12 +3,15 @@
 import { authActionClient } from '@/lib/safe-action';
 import {
   createDatasetReqSchema,
+  createDocumentsReqSchema,
   deleteDatasetReqSchema,
   getDatasetListReqSchema,
   updateDatasetReqSchema,
 } from '@/schemas/dataset-schema';
 import {
   createDataset,
+  createDocuments,
+  DEFAULT_PROCESS_RULE,
   deleteDataset,
   listDatasetsByPage,
   updateDataset,
@@ -50,4 +53,18 @@ export const updateDatasetAction = authActionClient
   .action(async ({ parsedInput, ctx: { userId } }) => {
     await updateDataset(parsedInput.datasetId, userId, parsedInput);
     return parsedInput.datasetId;
+  });
+
+export const createDocumentsAction = authActionClient
+  .inputSchema(createDocumentsReqSchema)
+  .metadata({
+    actionName: 'createDocuments',
+  })
+  .action(async ({ parsedInput, ctx: { userId } }) => {
+    return await createDocuments(userId, {
+      datasetId: parsedInput.datasetId,
+      uploadFileIds: parsedInput.uploadFileIds,
+      processType: parsedInput.processType,
+      rule: parsedInput.rule ?? DEFAULT_PROCESS_RULE.rule,
+    });
   });
