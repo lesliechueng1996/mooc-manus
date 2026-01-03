@@ -1,15 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: [
-    'bullmq',
-    'ioredis',
-    'nodejieba',
-    'officeparser',
-    '@mapbox/node-pre-gyp',
-    'pg',
-    'pg-native',
-  ],
+  serverExternalPackages: ['@node-rs/jieba'],
 };
 
 export default nextConfig;

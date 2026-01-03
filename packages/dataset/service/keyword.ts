@@ -1,14 +1,10 @@
-import nodejieba from 'nodejieba';
+import { Jieba, TfIdf } from '@node-rs/jieba';
+import { dict, idf } from '@node-rs/jieba/dict';
 
-if (typeof globalThis !== 'undefined' && !('window' in globalThis)) {
-  nodejieba.load();
-}
+const jieba = Jieba.withDict(dict);
+const tfIdf = TfIdf.withDict(idf);
 
 export const extractKeywords = (text: string, maxKeywords = 10) => {
-  if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
-    throw new Error('Only can be used in server side');
-  }
-
-  const keywords = nodejieba.extract(text, maxKeywords);
-  return keywords.map((item) => item.word);
+  const keywords = tfIdf.extractKeywords(jieba, text, maxKeywords);
+  return keywords.map((item) => item.keyword);
 };

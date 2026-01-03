@@ -12,13 +12,13 @@
     "format": "biome check --write"
   },
   "dependencies": {
+    "@node-rs/jieba": "^2.0.1",
     "@repo/bullmq-task": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/internal-langchain": "workspace:*",
     "@repo/prisma-database": "workspace:*",
     "@repo/tencent-cos": "workspace:*",
     "ioredis": "^5.8.2",
-    "nodejieba": "^3.5.2",
     "pg": "^8.16.3",
     "uuid": "^13.0.0"
   },

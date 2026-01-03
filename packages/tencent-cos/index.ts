@@ -5,7 +5,7 @@ import {
   getLogger,
   InternalServerErrorException,
 } from '@repo/common';
-import { randomUUIDv7 } from 'bun';
+import { randomUUID } from 'node:crypto';
 import COS from 'cos-nodejs-sdk-v5';
 import { format } from 'date-fns';
 import qcloudCosSts from 'qcloud-cos-sts';
@@ -82,7 +82,7 @@ export const getCosClient = () => {
 
 export const generateFileKey = (ext: string) => {
   const date = format(new Date(), 'yyyyMMdd');
-  return `${date}/${randomUUIDv7()}.${ext}`;
+  return `${date}/${randomUUID()}.${ext}`;
 };
 
 export const uploadFile = async (data: {
