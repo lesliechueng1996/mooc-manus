@@ -3,10 +3,19 @@ import {
   type BuildDocumentsTaskData,
   createBullmqQueue,
   DOCUMENT_QUEUE_NAME,
+  type Queue,
 } from '@repo/bullmq-task';
 import { getLogger } from '@repo/common';
 
-const documentQueue = createBullmqQueue(DOCUMENT_QUEUE_NAME);
+let documentQueue: Queue | null = null;
+
+const getDocumentQueue = () => {
+  if (documentQueue) {
+    return documentQueue;
+  }
+  documentQueue = createBullmqQueue(DOCUMENT_QUEUE_NAME);
+  return documentQueue;
+};
 
 export const buildDocumentsAyncTask = async (
   data: Omit<BuildDocumentsTaskData, 'taskName'>,
@@ -14,7 +23,7 @@ export const buildDocumentsAyncTask = async (
   const logger = getLogger();
   logger.info('Building documents async task');
 
-  return documentQueue.add(
+  return getDocumentQueue().add(
     BUILD_DOCUMENTS_TASK_NAME,
     {
       name: BUILD_DOCUMENTS_TASK_NAME,

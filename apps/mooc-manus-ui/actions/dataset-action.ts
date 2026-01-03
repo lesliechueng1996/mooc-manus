@@ -15,9 +15,9 @@ import {
   listDatasetsByPage,
   DEFAULT_PROCESS_RULE,
   getDocumentsByBatch,
+  createDocuments,
   updateDataset,
 } from '@/services/dataset-service';
-import { createDocuments } from '@repo/dataset';
 
 export const createDatasetAction = authActionClient
   .inputSchema(createDatasetReqSchema)
