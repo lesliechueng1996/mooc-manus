@@ -6,7 +6,7 @@ if (typeof globalThis !== 'undefined' && !('window' in globalThis)) {
 
 export const extractKeywords = (text: string, maxKeywords = 10) => {
   if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
-    throw new Error('关键词提取功能只能在服务器端运行');
+    throw new Error('Only can be used in server side');
   }
 
   const keywords = nodejieba.extract(text, maxKeywords);

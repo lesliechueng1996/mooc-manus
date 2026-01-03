@@ -1,5 +1,4 @@
-import { Logger } from '@/infrastructure/logging';
-import { databaseClient } from '@/infrastructure/storage/database';
+import { randomUUID } from 'node:crypto';
 import {
   calculateTokenCount,
   createParallelTask,
@@ -14,13 +13,14 @@ import {
   extractKeywords,
   formatKeywordMap,
   getOrCreateKeywordTable,
+  getVectorStore,
   load,
   SegmentStatus,
-  getVectorStore,
 } from '@repo/dataset';
-import type { Prisma } from '@repo/prisma-database';
 import type { Document } from '@repo/internal-langchain';
-import { randomUUID } from 'node:crypto';
+import type { Prisma } from '@repo/prisma-database';
+import { Logger } from '@/infrastructure/logging';
+import { databaseClient } from '@/infrastructure/storage/database';
 
 export class IndexService {
   private readonly logger: Logger;
@@ -30,14 +30,14 @@ export class IndexService {
   }
 
   private cleanExtraText(text: string) {
-    // 清理特殊标记，替换为标准的HTML标签
+    // Clean special markers and replace with standard HTML tags
     let result = text.replace(/<\|/g, '<');
     result = result.replace(/\|>/g, '>');
-    // 用字符串构造 RegExp，避免控制字符导致的语法错误
+    // Construct RegExp with string to avoid syntax errors caused by control characters
     const controlChars = '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\uFFFE]';
-    // 清理所有控制字符
+    // Clean all control characters
     result = result.replace(new RegExp(controlChars, 'g'), '');
-    // 清理特殊Unicode字符
+    // Clean special Unicode characters
     result = result.replace(/\uFFFE/g, '');
     return result;
   }
@@ -53,22 +53,22 @@ export class IndexService {
       this.logger.error('Upload file {id} not found', { id: doc.uploadFileId });
       throw new NotFoundException(`Upload file ${doc.uploadFileId} not found`);
     }
-    // 使用文件提取器加载文档内容，支持多种文件格式
+    // Use file extractor to load document content, supporting multiple file formats
     const langchainDocs = (await load(
       uploadFileRecord.key,
       false,
       true,
     )) as Document[];
 
-    // 清理文本并计算字符数，为后续处理做准备
+    // Clean text and calculate character count, preparing for subsequent processing
     let characterCount = 0;
     for (const langchainDoc of langchainDocs) {
-      // 清理文本中的特殊字符和控制字符
+      // Clean special characters and control characters in the text
       langchainDoc.pageContent = this.cleanExtraText(langchainDoc.pageContent);
       characterCount += langchainDoc.pageContent.length;
     }
 
-    // 更新文档状态为分割中，记录解析完成时间
+    // Update document status to splitting, record parsing completion time
     await databaseClient.document.update({
       where: { id: doc.id },
       data: {
@@ -91,7 +91,7 @@ export class IndexService {
     langchainDocs: Document[],
   ) {
     this.logger.info('Start splitting document {id}', { id: doc.id });
-    // 获取处理规则，用于控制文档分割的方式
+    // Get processing rules to control document splitting method
     const processRuleRecord = await databaseClient.processRule.findUnique({
       where: {
         id: doc.processRuleId,
@@ -108,12 +108,12 @@ export class IndexService {
       processRuleRecord,
     });
 
-    // 创建文本分割器，根据处理规则和token计算方式
+    // Create text splitter based on processing rules and token calculation method
     const textSplitter = createTextSplitter(
       processRuleRecord,
       calculateTokenCount,
     );
-    // 清理每个文档片段的文本内容
+    // Clean text content of each document fragment
     this.logger.info('Clean text before splitting.');
     for (const langchainDoc of langchainDocs) {
       langchainDoc.pageContent = cleanText(
@@ -122,12 +122,12 @@ export class IndexService {
       );
     }
 
-    // 使用分割器将文档分割成更小的片段
+    // Use splitter to split document into smaller fragments
     this.logger.info('Split documents.');
     const langchainSegments = await textSplitter.splitDocuments(langchainDocs);
     this.logger.info('Split documents completed.');
 
-    // 获取最后一个片段的位置，用于确定新片段的位置
+    // Get the position of the last segment to determine the position of new segments
 
     const segmentPositionRecord = await databaseClient.segment.findFirst({
       where: {
@@ -142,7 +142,7 @@ export class IndexService {
       lastSegmentPosition,
     });
 
-    // 准备片段数据，包括计算token数量和生成唯一标识
+    // Prepare segment data, including calculating token count and generating unique identifiers
     const segments: Prisma.SegmentCreateManyInput[] = [];
     let docTokenCount = 0;
     for (const langchainSegment of langchainSegments) {
@@ -150,24 +150,24 @@ export class IndexService {
       const content = langchainSegment.pageContent;
       const segmentTokenCount = calculateTokenCount(content);
       docTokenCount += segmentTokenCount;
-      // 创建新的片段记录，包含完整的元数据
+      // Create new segment record with complete metadata
       const segment = {
         userId: doc.userId,
         datasetId: doc.datasetId,
         documentId: doc.id,
-        nodeId: randomUUID(), // 生成唯一节点ID
+        nodeId: randomUUID(), // Generate unique node ID
         position: lastSegmentPosition,
         content,
         characterCount: content.length,
         tokenCount: segmentTokenCount,
-        hash: hashText(content), // 计算内容哈希值，用于去重
+        hash: hashText(content), // Calculate content hash for deduplication
         status: SegmentStatus.WAITING,
       };
       segments.push(segment);
     }
 
     this.logger.info('Save segments.');
-    // 在事务中保存片段并更新文档状态，确保数据一致性
+    // Save segments and update document status in a transaction to ensure data consistency
 
     const [segmentRecords, _] = await databaseClient.$transaction([
       databaseClient.segment.createManyAndReturn({
@@ -183,7 +183,7 @@ export class IndexService {
       }),
     ]);
 
-    // 更新 LangChain 文档片段的元数据，添加必要的标识信息
+    // Update LangChain document segment metadata with necessary identification information
     for (let i = 0; i < langchainSegments.length; i++) {
       const segmentRecord = segmentRecords[i];
       langchainSegments[i].metadata = {
@@ -193,8 +193,8 @@ export class IndexService {
         document_id: segmentRecord.documentId,
         segment_id: segmentRecord.id,
         node_id: segmentRecord.nodeId,
-        document_enabled: false, // 初始状态为禁用
-        segment_enabled: false, // 初始状态为禁用
+        document_enabled: false, // Initial state is disabled
+        segment_enabled: false, // Initial state is disabled
       };
     }
 
@@ -212,14 +212,14 @@ export class IndexService {
     keywordTableRecord: Prisma.KeywordTableModel,
   ) {
     this.logger.info('Start indexing document {id}', { id: doc.id });
-    // 初始化关键词映射，用于存储关键词和对应的片段ID
+    // Initialize keyword mapping to store keywords and corresponding segment IDs
     const keywordMapping = buildKeywordMap(keywordTableRecord);
 
-    // 处理每个文档片段，提取关键词并更新索引
+    // Process each document segment, extract keywords and update index
     for (const langchainSegment of langchainSegments) {
-      // 提取片段中的关键词，限制为前10个
+      // Extract keywords from segment, limited to top 10
       const segmentKeywords = extractKeywords(langchainSegment.pageContent, 10);
-      // 更新片段状态和关键词
+      // Update segment status and keywords
       await databaseClient.segment.update({
         where: { id: langchainSegment.metadata.segment_id },
         data: {
@@ -229,7 +229,7 @@ export class IndexService {
         },
       });
 
-      // 更新关键词映射，建立关键词和片段的关联
+      // Update keyword mapping to establish association between keywords and segments
       for (const segmentKeyword of segmentKeywords) {
         if (!keywordMapping.has(segmentKeyword)) {
           keywordMapping.set(segmentKeyword, new Set());
@@ -262,7 +262,7 @@ export class IndexService {
     langchainSegments: Document[],
   ) {
     this.logger.info('Start saving document {id}', { id: doc.id });
-    // 启用文档和片段，准备存储
+    // Enable document and segments, prepare for storage
     for (const langchainSegment of langchainSegments) {
       langchainSegment.metadata.document_enabled = true;
       langchainSegment.metadata.segment_enabled = true;
@@ -270,18 +270,18 @@ export class IndexService {
 
     const vectorStore = await getVectorStore();
 
-    // 使用并发任务处理批量存储，提高性能
-    const task = createParallelTask(10); // 限制并发数为10
+    // Use parallel tasks to handle batch storage, improving performance
+    const task = createParallelTask(10); // Limit concurrency to 10
     for (let i = 0; i < langchainSegments.length; i += 10) {
       const segmentBatch = langchainSegments.slice(i, i + 10);
       const ids = segmentBatch.map((item) => item.metadata.node_id as string);
       task.addTask(async () => {
-        // 将片段添加到向量存储，支持相似度搜索
+        // Add segments to vector store, supporting similarity search
         await vectorStore.addDocuments(segmentBatch, {
           ids,
         });
 
-        // 更新片段状态为完成，启用片段
+        // Update segment status to completed, enable segments
         await databaseClient.segment.updateMany({
           where: { nodeId: { in: ids } },
           data: {
@@ -293,10 +293,10 @@ export class IndexService {
       });
     }
 
-    // 等待所有存储任务完成
+    // Wait for all storage tasks to complete
     await task.run();
     this.logger.info('Document {id} all segments completed', { id: doc.id });
-    // 更新文档状态为完成，启用文档
+    // Update document status to completed, enable document
     await databaseClient.document.update({
       where: { id: doc.id },
       data: {

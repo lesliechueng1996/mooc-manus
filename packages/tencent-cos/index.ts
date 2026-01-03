@@ -1,3 +1,4 @@
+import { createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import {
   BadRequestException,
@@ -15,7 +16,6 @@ import {
   ALLOWED_IMAGE_SIZE,
 } from './constant';
 import { withTempFile } from './temp-file';
-import { createWriteStream } from 'node:fs';
 
 const logger = getLogger();
 

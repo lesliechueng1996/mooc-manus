@@ -4,8 +4,8 @@ import {
   createAPILoggerConfiguration,
   createErrorResponse,
   getLogger,
-  type LogLevel,
   initRedisClient,
+  type LogLevel,
 } from '@repo/common';
 import { Elysia } from 'elysia';
 import { z } from 'zod';

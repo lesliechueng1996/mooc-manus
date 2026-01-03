@@ -1,6 +1,6 @@
+import { CacheBackedEmbeddings } from '@repo/internal-langchain';
 import { RedisByteStore } from '@repo/internal-langchain/community';
 import { OpenAIEmbeddings } from '@repo/internal-langchain/openai';
-import { CacheBackedEmbeddings } from '@repo/internal-langchain';
 import Redis from 'ioredis';
 
 const redisClient = new Redis({

@@ -1,17 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { withTempFile } from '@repo/common';
-import { getLogger } from '@repo/common';
-import { downloadFile } from '@repo/tencent-cos';
+import { getLogger, withTempFile } from '@repo/common';
 import {
   CSVLoader,
-  DocxLoader,
-  PPTXLoader,
-  JSONLoader,
-  TextLoader,
   type DocumentLoader,
+  DocxLoader,
+  JSONLoader,
   PDFLoader,
+  PPTXLoader,
+  TextLoader,
 } from '@repo/internal-langchain/community';
+import { downloadFile } from '@repo/tencent-cos';
 
 export const loadFromFile = async (
   filePath: string,
@@ -67,13 +66,6 @@ export const load = async (
   });
 };
 
-/**
- * 从 URL 加载文件内容
- * @param url - 文件的 URL 地址
- * @param returnText - 是否只返回文本内容，默认为 false
- * @returns 文档数组或文本内容
- * @throws 当文件下载失败时抛出错误
- */
 export const loadFromUrl = async (url: string, returnText = false) => {
   const logger = getLogger();
   const response = await fetch(url);

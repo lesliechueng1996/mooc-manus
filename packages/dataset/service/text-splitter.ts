@@ -1,6 +1,6 @@
+import { RecursiveCharacterTextSplitter } from '@repo/internal-langchain';
 import type { Prisma } from '@repo/prisma-database';
 import { PreProcessRuleId } from '../types';
-import { RecursiveCharacterTextSplitter } from '@repo/internal-langchain';
 
 type Rule = {
   preProcessRules: {
