@@ -17,6 +17,21 @@ services:
     volumes:
       - manus_redis_data:/data
 
+  manus-vector-store:
+    image: pgvector/pgvector:pg16
+    hostname: 127.0.0.1
+    ports: 
+      - 5433:5432
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=manus
+    volumes:
+      - manus_vector_store_data:/var/lib/postgresql
+
+
 volumes:
   manus_postgres_data:
   manus_redis_data:
+  manus_vector_store_data:

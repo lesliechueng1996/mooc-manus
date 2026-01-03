@@ -5,6 +5,7 @@ import {
   createErrorResponse,
   getLogger,
   type LogLevel,
+  initRedisClient,
 } from '@repo/common';
 import { Elysia } from 'elysia';
 import { z } from 'zod';
@@ -18,6 +19,7 @@ import { worker } from './interface/plugin/worker';
 
 await createAPILoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
 const logger = getLogger();
+initRedisClient();
 
 const apiRouter = new Elysia({ name: 'api-router' }).group(
   '/api',

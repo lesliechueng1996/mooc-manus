@@ -1,13 +1,22 @@
 import { Logger } from '@/infrastructure/logging';
 import { databaseClient } from '@/infrastructure/storage/database';
-import { calculateTokenCount, hashText, NotFoundException } from '@repo/common';
 import {
+  calculateTokenCount,
+  createParallelTask,
+  hashText,
+  NotFoundException,
+} from '@repo/common';
+import {
+  buildKeywordMap,
   cleanText,
   createTextSplitter,
   DocumentStatus,
+  extractKeywords,
+  formatKeywordMap,
   getOrCreateKeywordTable,
   load,
   SegmentStatus,
+  getVectorStore,
 } from '@repo/dataset';
 import type { Prisma } from '@repo/prisma-database';
 import type { Document } from '@repo/internal-langchain';
@@ -197,6 +206,109 @@ export class IndexService {
     return langchainSegments;
   }
 
+  private async indexingDocument(
+    doc: Prisma.DocumentModel,
+    langchainSegments: Document[],
+    keywordTableRecord: Prisma.KeywordTableModel,
+  ) {
+    this.logger.info('Start indexing document {id}', { id: doc.id });
+    // 初始化关键词映射，用于存储关键词和对应的片段ID
+    const keywordMapping = buildKeywordMap(keywordTableRecord);
+
+    // 处理每个文档片段，提取关键词并更新索引
+    for (const langchainSegment of langchainSegments) {
+      // 提取片段中的关键词，限制为前10个
+      const segmentKeywords = extractKeywords(langchainSegment.pageContent, 10);
+      // 更新片段状态和关键词
+      await databaseClient.segment.update({
+        where: { id: langchainSegment.metadata.segment_id },
+        data: {
+          keywords: segmentKeywords,
+          status: SegmentStatus.INDEXING,
+          indexingCompletedAt: new Date(),
+        },
+      });
+
+      // 更新关键词映射，建立关键词和片段的关联
+      for (const segmentKeyword of segmentKeywords) {
+        if (!keywordMapping.has(segmentKeyword)) {
+          keywordMapping.set(segmentKeyword, new Set());
+        }
+        keywordMapping
+          .get(segmentKeyword)
+          ?.add(langchainSegment.metadata.segment_id);
+      }
+    }
+
+    this.logger.info('Document {id} all segments indexed', { id: doc.id });
+    await databaseClient.$transaction([
+      databaseClient.keywordTable.update({
+        where: { id: keywordTableRecord.id },
+        data: {
+          keywords: formatKeywordMap(keywordMapping),
+        },
+      }),
+      databaseClient.document.update({
+        where: { id: doc.id },
+        data: {
+          indexingCompletedAt: new Date(),
+        },
+      }),
+    ]);
+  }
+
+  private async savingDocument(
+    doc: Prisma.DocumentModel,
+    langchainSegments: Document[],
+  ) {
+    this.logger.info('Start saving document {id}', { id: doc.id });
+    // 启用文档和片段，准备存储
+    for (const langchainSegment of langchainSegments) {
+      langchainSegment.metadata.document_enabled = true;
+      langchainSegment.metadata.segment_enabled = true;
+    }
+
+    const vectorStore = await getVectorStore();
+
+    // 使用并发任务处理批量存储，提高性能
+    const task = createParallelTask(10); // 限制并发数为10
+    for (let i = 0; i < langchainSegments.length; i += 10) {
+      const segmentBatch = langchainSegments.slice(i, i + 10);
+      const ids = segmentBatch.map((item) => item.metadata.node_id as string);
+      task.addTask(async () => {
+        // 将片段添加到向量存储，支持相似度搜索
+        await vectorStore.addDocuments(segmentBatch, {
+          ids,
+        });
+
+        // 更新片段状态为完成，启用片段
+        await databaseClient.segment.updateMany({
+          where: { nodeId: { in: ids } },
+          data: {
+            status: SegmentStatus.COMPLETED,
+            completedAt: new Date(),
+            enabled: true,
+          },
+        });
+      });
+    }
+
+    // 等待所有存储任务完成
+    await task.run();
+    this.logger.info('Document {id} all segments completed', { id: doc.id });
+    // 更新文档状态为完成，启用文档
+    await databaseClient.document.update({
+      where: { id: doc.id },
+      data: {
+        status: DocumentStatus.COMPLETED,
+        completedAt: new Date(),
+        enabled: true,
+      },
+    });
+
+    this.logger.info('Document {id} completed', { id: doc.id });
+  }
+
   async buildDocuments(documentIds: string[], datasetId: string) {
     if (!documentIds || documentIds.length === 0) {
       this.logger.warn('No document ids provided');
@@ -244,13 +356,13 @@ export class IndexService {
           langchainDocs,
         );
         // // 3. Indexing document: create a keyword index for the document fragments, support for subsequent search
-        // await indexingDocument(
-        //   documentRecord,
-        //   langchainSegments,
-        //   keywordTableRecord,
-        // );
+        await this.indexingDocument(
+          documentRecord,
+          langchainSegments,
+          keywordTableRecord,
+        );
         // // 4. Saving document: store the processed document fragments into the vector database
-        // await savingDocument(documentRecord, langchainSegments);
+        await this.savingDocument(documentRecord, langchainSegments);
       } catch (error) {
         this.logger.error('Build document {id} failed!', {
           id: documentRecord.id,

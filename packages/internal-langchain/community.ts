@@ -9,3 +9,5 @@ export { UnstructuredLoader } from '@langchain/community/document_loaders/fs/uns
 export { JSONLoader } from '@langchain/classic/document_loaders/fs/json';
 export { TextLoader } from '@langchain/classic/document_loaders/fs/text';
 export type { DocumentLoader } from '@langchain/core/document_loaders/base';
+export { RedisByteStore } from '@langchain/community/storage/ioredis';
+export { PGVectorStore } from '@langchain/community/vectorstores/pgvector';

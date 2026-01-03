@@ -8,14 +8,19 @@
     "format": "biome check --write"
   },
   "dependencies": {
-    "@repo/common": "workspace:*",
-    "@repo/prisma-database": "workspace:*",
     "@repo/bullmq-task": "workspace:*",
+    "@repo/common": "workspace:*",
     "@repo/internal-langchain": "workspace:*",
-    "@repo/tencent-cos": "workspace:*"
+    "@repo/prisma-database": "workspace:*",
+    "@repo/tencent-cos": "workspace:*",
+    "ioredis": "^5.8.2",
+    "nodejieba": "^3.5.2",
+    "pg": "^8.16.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.16.0"
   },
   "peerDependencies": {
     "typescript": "^5"

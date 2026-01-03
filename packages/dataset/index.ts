@@ -5,3 +5,5 @@ export * from './service/keyword-table';
 export * from './service/file-extractor';
 export * from './types';
 export * from './service/text-splitter';
+export * from './service/keyword';
+export * from './service/vector-store';
