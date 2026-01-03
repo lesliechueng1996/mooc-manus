@@ -1,8 +1,8 @@
+import { createRedisClient, type Redis } from '@repo/redis-client';
 import { type Processor, Queue, Worker } from 'bullmq';
-import IORedis from 'ioredis';
 
 const globalForBullmq = globalThis as unknown as {
-  redisConnection?: IORedis;
+  redisConnection?: Redis;
   queues: Map<string, Queue>;
 };
 
@@ -25,7 +25,7 @@ export const initBullmqConnection = (options?: {
     db: parseInt(process.env.REDIS_QUEUE_DB || '0', 10),
   };
 
-  globalForBullmq.redisConnection = new IORedis({
+  globalForBullmq.redisConnection = createRedisClient({
     host,
     port,
     db,

@@ -1,6 +1,6 @@
 import { PGVectorStore } from '@repo/internal-langchain/community';
 import type { PoolConfig } from 'pg';
-import { cacheBackedEmbedding } from './embedding';
+import { createCacheBackedEmbedding } from './embedding';
 
 const config = {
   postgresConnectionOption: {
@@ -27,7 +27,10 @@ export const initVectorStore = async () => {
     return vectorStore;
   }
 
-  vectorStore = await PGVectorStore.initialize(cacheBackedEmbedding, config);
+  vectorStore = await PGVectorStore.initialize(
+    createCacheBackedEmbedding(),
+    config,
+  );
 };
 
 export const vectorStoreRetriever = async () => {

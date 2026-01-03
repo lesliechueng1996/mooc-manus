@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { Logger, RedisClient } from '@repo/common';
+import { Logger } from '@repo/common';
 import { type Prisma, prisma } from '@repo/prisma-database';
+import { getDefaultRedisClient, RedisClient } from '@repo/redis-client';
 
 export const LOCK_KEYWORD_TABLE_UPDATE_KEYWORD_TABLE =
   'lock:keyword_table:update:keyword_table_{dataset_id}';
@@ -56,7 +57,7 @@ export const addKeywordTableFromSegmentIds = async (
   segmentIds: string[],
 ) => {
   const logger = new Logger();
-  const redisClient = new RedisClient(logger);
+  const redisClient = new RedisClient(getDefaultRedisClient(), logger);
   const lockKey = LOCK_KEYWORD_TABLE_UPDATE_KEYWORD_TABLE.replace(
     '{dataset_id}',
     datasetId,
@@ -130,7 +131,7 @@ export const deleteKeywordTableFromSegmentIds = async (
   segmentIds: string[],
 ) => {
   const logger = new Logger();
-  const redisClient = new RedisClient(logger);
+  const redisClient = new RedisClient(getDefaultRedisClient(), logger);
   const lockKey = LOCK_KEYWORD_TABLE_UPDATE_KEYWORD_TABLE.replace(
     '{dataset_id}',
     datasetId,

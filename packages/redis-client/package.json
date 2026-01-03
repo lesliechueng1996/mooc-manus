@@ -1,11 +1,11 @@
 {
-  "name": "@repo/bullmq-task",
+  "name": "@repo/redis-client",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "biome check",
-    "format": "biome check --write"
+    "lint": "turbo run lint",
+    "format": "turbo run format"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -14,7 +14,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "bullmq": "^5.66.4",
-    "@repo/redis-client": "workspace:*"
+    "ioredis": "^5.8.2",
+    "@repo/common": "workspace:*"
   }
 }

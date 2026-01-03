@@ -18,7 +18,7 @@
     "@repo/internal-langchain": "workspace:*",
     "@repo/prisma-database": "workspace:*",
     "@repo/tencent-cos": "workspace:*",
-    "ioredis": "^5.8.2",
+    "@repo/redis-client": "workspace:*",
     "pg": "^8.16.3",
     "uuid": "^13.0.0"
   },

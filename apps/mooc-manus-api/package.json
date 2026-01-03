@@ -14,6 +14,7 @@
     "@repo/dataset": "workspace:*",
     "@repo/prisma-database": "workspace:*",
     "@repo/internal-langchain": "workspace:*",
+    "@repo/redis-client": "workspace:*",
     "cheerio": "^1.1.2",
     "elysia": "latest",
     "jsonrepair": "^3.13.1",

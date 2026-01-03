@@ -1,26 +1,24 @@
 import { CacheBackedEmbeddings } from '@repo/internal-langchain';
 import { RedisByteStore } from '@repo/internal-langchain/community';
 import { OpenAIEmbeddings } from '@repo/internal-langchain/openai';
-import Redis from 'ioredis';
+import { getDefaultRedisClient } from '@repo/redis-client';
 
-const redisClient = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379', 10),
-  db: parseInt(process.env.REDIS_DB || '0', 10),
-});
+export const createCacheBackedEmbedding = () => {
+  const embeddings = new OpenAIEmbeddings({
+    model: 'text-embedding-3-small',
+  });
 
-const embeddings = new OpenAIEmbeddings({
-  model: 'text-embedding-3-small',
-});
+  const redisStore = new RedisByteStore({
+    client: getDefaultRedisClient(),
+  });
 
-const redisStore = new RedisByteStore({
-  client: redisClient,
-});
+  const cacheBackedEmbedding = CacheBackedEmbeddings.fromBytesStore(
+    embeddings,
+    redisStore,
+    {
+      namespace: 'embeddings',
+    },
+  );
 
-export const cacheBackedEmbedding = CacheBackedEmbeddings.fromBytesStore(
-  embeddings,
-  redisStore,
-  {
-    namespace: 'embeddings',
-  },
-);
+  return cacheBackedEmbedding;
+};

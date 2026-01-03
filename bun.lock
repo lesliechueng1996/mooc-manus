@@ -25,6 +25,7 @@
         "@repo/dataset": "workspace:*",
         "@repo/internal-langchain": "workspace:*",
         "@repo/prisma-database": "workspace:*",
+        "@repo/redis-client": "workspace:*",
         "cheerio": "^1.1.2",
         "elysia": "latest",
         "jsonrepair": "^3.13.1",
@@ -143,8 +144,8 @@
     "packages/bullmq-task": {
       "name": "@repo/bullmq-task",
       "dependencies": {
+        "@repo/redis-client": "workspace:*",
         "bullmq": "^5.66.4",
-        "ioredis": "^5.8.2",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -177,8 +178,8 @@
         "@repo/common": "workspace:*",
         "@repo/internal-langchain": "workspace:*",
         "@repo/prisma-database": "workspace:*",
+        "@repo/redis-client": "workspace:*",
         "@repo/tencent-cos": "workspace:*",
-        "ioredis": "^5.8.2",
         "pg": "^8.16.3",
         "uuid": "^13.0.0",
       },
@@ -220,6 +221,19 @@
         "@types/bun": "latest",
         "@types/pg": "^8.16.0",
         "prisma": "^7.2.0",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/redis-client": {
+      "name": "@repo/redis-client",
+      "dependencies": {
+        "@repo/common": "workspace:*",
+        "ioredis": "^5.8.2",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -617,6 +631,8 @@
     "@repo/internal-langchain": ["@repo/internal-langchain@workspace:packages/internal-langchain"],
 
     "@repo/prisma-database": ["@repo/prisma-database@workspace:packages/prisma-database"],
+
+    "@repo/redis-client": ["@repo/redis-client@workspace:packages/redis-client"],
 
     "@repo/tencent-cos": ["@repo/tencent-cos@workspace:packages/tencent-cos"],
 
