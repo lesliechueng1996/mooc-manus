@@ -1,4 +1,4 @@
-import { getDatasetBasicInfo } from '@repo/dataset/client';
+import { getDatasetBasicInfo } from '@/services/dataset-service';
 import { headers } from 'next/headers';
 import InterceptingModal from '@/components/InterceptingModal';
 import { auth } from '@/lib/auth';

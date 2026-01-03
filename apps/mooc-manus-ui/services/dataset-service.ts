@@ -1,1 +1,1 @@
-export * from '@repo/dataset/client';
+export * from '@repo/dataset';
