@@ -1,6 +1,6 @@
 'use client';
 
-import { ProcessType } from '@repo/dataset';
+import { ProcessType } from '@repo/dataset/client';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';

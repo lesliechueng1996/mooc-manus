@@ -1,1 +1,4 @@
-export { createUILoggerConfiguration, getLogger } from '@repo/common';
+export {
+  createUILoggerConfiguration,
+  getLogger,
+} from '@repo/common';

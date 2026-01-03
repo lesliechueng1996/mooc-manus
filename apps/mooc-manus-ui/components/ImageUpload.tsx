@@ -27,7 +27,6 @@ import {
   ALLOWED_IMAGE_SIZE,
   uploadFile,
 } from '@/lib/cos';
-import { getLogger } from '@/lib/logger';
 import { cn, getActionErrorMsg } from '@/lib/utils';
 
 export type ImageUploadRef = {
@@ -96,8 +95,6 @@ const ImageUpload = ({
   };
 
   const uploadImage = async (defaultImageUrl?: string) => {
-    const logger = getLogger();
-
     const file = inputRef.current?.files?.[0];
     if (!file && !imageUrl && required && !defaultImageUrl) {
       toast.error('Please upload an image');
@@ -140,7 +137,7 @@ const ImageUpload = ({
 
       return url;
     } catch (error) {
-      logger.error('Image upload failed: %o', { error });
+      console.error('Image upload failed: ', error);
       toast.error('Upload failed');
       return null;
     } finally {

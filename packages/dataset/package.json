@@ -3,6 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "exports": {
+    ".": "./index.ts",
+    "./client": "./client.ts"
+  },
   "scripts": {
     "lint": "biome check",
     "format": "biome check --write"

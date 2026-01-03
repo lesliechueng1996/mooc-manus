@@ -1,6 +1,6 @@
 'use client';
 
-import { PreProcessRuleId, ProcessType } from '@repo/dataset';
+import { PreProcessRuleId, ProcessType } from '@repo/dataset/client';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {

@@ -5,10 +5,11 @@ import {
   getLogger as getLogtapeLogger,
 } from '@logtape/logtape';
 import { getPrettyFormatter } from '@logtape/pretty';
+import type { LogLevel } from './type';
+
+export * from './type';
 
 let loggerName = 'mooc-manus-api';
-
-export type LogLevel = 'debug' | 'info' | 'warning' | 'error';
 
 export const createUILoggerConfiguration = (logLevel: LogLevel = 'debug') => {
   loggerName = 'mooc-manus-ui';

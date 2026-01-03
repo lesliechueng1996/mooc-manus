@@ -1,5 +1,9 @@
-import { createUILoggerConfiguration, type LogLevel } from '@repo/common';
+import type { LogLevel } from '@repo/common/client';
 
 export async function register() {
-  await createUILoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    const { createUILoggerConfiguration } = await import('@repo/common');
+
+    await createUILoggerConfiguration(process.env.LOG_LEVEL as LogLevel);
+  }
 }

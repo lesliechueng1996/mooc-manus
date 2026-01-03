@@ -3,7 +3,7 @@ import {
   DEFAULT_PROCESS_RULE,
   PreProcessRuleId,
   ProcessType,
-} from '@repo/dataset';
+} from '@repo/dataset/client';
 import { z } from 'zod';
 
 export const createDatasetReqSchema = z.object({
