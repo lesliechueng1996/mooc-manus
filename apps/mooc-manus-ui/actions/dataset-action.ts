@@ -13,11 +13,11 @@ import {
   createDataset,
   deleteDataset,
   listDatasetsByPage,
-  createDocuments,
   DEFAULT_PROCESS_RULE,
   getDocumentsByBatch,
   updateDataset,
 } from '@/services/dataset-service';
+import { createDocuments } from '@repo/dataset';
 
 export const createDatasetAction = authActionClient
   .inputSchema(createDatasetReqSchema)
