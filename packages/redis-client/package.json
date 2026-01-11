@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "turbo run lint",
-    "format": "turbo run format"
+    "lint": "biome check",
+    "format": "biome check --write"
   },
   "devDependencies": {
     "@types/bun": "latest"

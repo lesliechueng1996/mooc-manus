@@ -7,15 +7,17 @@
     "format": "biome check --write"
   },
   "dependencies": {
+    "@elysiajs/eden": "^1.4.6",
     "@elysiajs/openapi": "^1.4.12",
     "@modelcontextprotocol/sdk": "^1.25.1",
-    "@repo/common": "workspace:*",
     "@repo/bullmq-task": "workspace:*",
+    "@repo/common": "workspace:*",
     "@repo/dataset": "workspace:*",
-    "@repo/prisma-database": "workspace:*",
     "@repo/internal-langchain": "workspace:*",
+    "@repo/prisma-database": "workspace:*",
     "@repo/redis-client": "workspace:*",
     "cheerio": "^1.1.2",
+    "dockerode": "^4.0.9",
     "elysia": "latest",
     "jsonrepair": "^3.13.1",
     "openai": "^6.15.0",
@@ -25,6 +27,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
+    "@types/dockerode": "^3.3.47",
     "@types/turndown": "^5.0.6",
     "bun-types": "latest"
   },

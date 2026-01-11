@@ -1,7 +1,7 @@
-import { getDatasetBasicInfo } from '@/services/dataset-service';
 import { headers } from 'next/headers';
 import InterceptingModal from '@/components/InterceptingModal';
 import { auth } from '@/lib/auth';
+import { getDatasetBasicInfo } from '@/services/dataset-service';
 import EditDatasetModal from './_components/EditDatasetModal';
 
 type Props = {

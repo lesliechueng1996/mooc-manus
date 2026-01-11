@@ -84,3 +84,5 @@ const app = new Elysia()
 logger.info(
   `🦊 Mooc Manus Sandbox is running at ${app.server?.hostname}:${app.server?.port}`,
 );
+
+export type SandboxApp = typeof app;

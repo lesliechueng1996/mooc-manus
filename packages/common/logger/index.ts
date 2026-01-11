@@ -123,8 +123,8 @@ export const getLogger = () => {
 };
 
 export class Logger {
-  private requestId: string;
-  private userId: string;
+  requestId: string;
+  userId: string;
 
   constructor(requestId: string = 'N/A', userId: string = 'N/A') {
     this.requestId = requestId;
@@ -167,5 +167,12 @@ export class Logger {
       requestId: this.requestId,
       userId: this.userId,
     });
+  }
+
+  public toHeaders(): Record<string, string> {
+    return {
+      'x-request-id': this.requestId,
+      'x-user-id': this.userId,
+    };
   }
 }

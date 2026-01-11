@@ -1,3 +1,4 @@
+import type { Logger } from '@/infrastructure/logging';
 import type { ToolResult } from '../model/tool-result';
 import type { Browser } from './browser';
 
@@ -79,20 +80,14 @@ export interface Sandbox {
 
   getBrowser(): Browser;
 
-  id: {
-    get: () => string;
-  };
+  get id(): string;
 
-  cdpUrl: {
-    get: () => string;
-  };
+  get cdpUrl(): string;
 
-  vncUrl: {
-    get: () => string;
-  };
+  get vncUrl(): string;
 }
 
 export namespace Sandbox {
-  export declare function create(id: string): Sandbox;
-  export declare function get(id: string): Sandbox;
+  export declare function create(logger: Logger): Sandbox;
+  export declare function get(id: string, logger: Logger): Sandbox;
 }
