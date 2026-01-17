@@ -3,7 +3,10 @@ import Docker, { type Container, type ContainerCreateOptions } from 'dockerode';
 import { z } from 'zod';
 import type { Browser } from '@/domain/external/browser';
 import type { Sandbox } from '@/domain/external/sandbox';
-import { toolResultFromSandbox } from '@/domain/model/tool-result';
+import {
+  type ToolResult,
+  toolResultFromSandbox,
+} from '@/domain/model/tool-result';
 import type { Logger } from '@/infrastructure/logging';
 import { PlaywrightBrowser } from '../browser/playwright-browser';
 import { createSandboxAppClient } from '../sandbox-app/eden-sandbox-client';
@@ -45,7 +48,7 @@ export class DockerSandbox implements Sandbox {
 
   constructor(
     private readonly logger: Logger,
-    private readonly ip: string | null = null,
+    readonly ip: string | null = null,
     private readonly containerName: string | null = null,
   ) {
     this.baseUrl = `http://${ip}:8081`;
@@ -234,5 +237,466 @@ export class DockerSandbox implements Sandbox {
       { maxRetries },
     );
     throw new Error('Cannot ensure Sandbox Supervisor process status');
+  }
+
+  async fileRead(
+    filepath: string,
+    options?: {
+      startLine?: number;
+      endLine?: number;
+      sudo?: boolean;
+      maxLength?: number;
+    },
+  ): Promise<ToolResult<{ filepath: string; content: string } | null>> {
+    const response = await this.sandboxAppClient.api.file['read-file'].post(
+      {
+        filepath,
+        startLine: options?.startLine ?? null,
+        endLine: options?.endLine ?? null,
+        sudo: options?.sudo ?? false,
+        maxLength: options?.maxLength ?? null,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Read file failed',
+      null,
+    );
+  }
+
+  async fileWrite(
+    filepath: string,
+    content: string,
+    options?: {
+      append?: boolean;
+      leadingNewline?: boolean;
+      trailingNewline?: boolean;
+      sudo?: boolean;
+    },
+  ): Promise<
+    ToolResult<{ filepath: string; bytesWritten: number | null } | null>
+  > {
+    const response = await this.sandboxAppClient.api.file['write-file'].post(
+      {
+        filepath,
+        content,
+        append: options?.append ?? false,
+        leadingNewline: options?.leadingNewline ?? false,
+        trailingNewline: options?.trailingNewline ?? false,
+        sudo: options?.sudo ?? false,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Write file failed',
+      null,
+    );
+  }
+
+  async fileReplace(
+    filepath: string,
+    oldText: string,
+    newText: string,
+    options?: { sudo?: boolean },
+  ): Promise<ToolResult<{ filepath: string; replacedCount: number } | null>> {
+    const response = await this.sandboxAppClient.api.file[
+      'replace-in-file'
+    ].post(
+      {
+        filepath,
+        oldStr: oldText,
+        newStr: newText,
+        sudo: options?.sudo ?? false,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Replace in file failed',
+      null,
+    );
+  }
+
+  async fileSearch(
+    filepath: string,
+    regex: string,
+    options?: { sudo?: boolean },
+  ): Promise<
+    ToolResult<{
+      filepath: string;
+      matches: string[];
+      lineNumbers: number[];
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.file[
+      'search-in-file'
+    ].post(
+      {
+        filepath,
+        regex,
+        sudo: options?.sudo ?? false,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Search in file failed',
+      null,
+    );
+  }
+
+  async fileFind(
+    dirPath: string,
+    globPattern: string,
+  ): Promise<
+    ToolResult<{
+      dirPath: string;
+      files: string[];
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.file['find-files'].post(
+      {
+        dirPath,
+        globPattern,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Find files failed',
+      null,
+    );
+  }
+
+  async fileList(
+    dirPath: string,
+  ): Promise<ToolResult<{ dirPath: string; files: string[] } | null>> {
+    return this.fileFind(dirPath, '*');
+  }
+
+  async fileExists(filepath: string): Promise<
+    ToolResult<{
+      filepath: string;
+      exists: boolean;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.file[
+      'check-file-exists'
+    ].post(
+      {
+        filepath,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Check file exists failed',
+      null,
+    );
+  }
+
+  async fileDelete(filepath: string): Promise<
+    ToolResult<{
+      filepath: string;
+      deleted: boolean;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.file['delete-file'].post(
+      {
+        filepath,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Delete file failed',
+      null,
+    );
+  }
+
+  async fileUpload(
+    fileData: File,
+    filepath: string,
+  ): Promise<
+    ToolResult<{
+      filepath: string;
+      fileSize: number;
+      success: boolean;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.file['upload-file'].post(
+      {
+        filepath,
+        file: fileData,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Delete file failed',
+      null,
+    );
+  }
+
+  async fileDownload(filepath: string): Promise<Buffer> {
+    const response = await this.sandboxAppClient.api.file['download-file'].post(
+      {
+        filepath,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200) {
+      return response.data as Buffer;
+    }
+    throw new Error('Download file failed');
+  }
+
+  async execCommand(
+    sessionId: string,
+    execDir: string,
+    command: string,
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      command: string;
+      status: string;
+      returnCode?: number | undefined;
+      output?: string | undefined;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.shell['exec-command'].post(
+      {
+        sessionId,
+        execDir,
+        command,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Execute command failed',
+      null,
+    );
+  }
+
+  async viewShell(
+    sessionId: string,
+    console?: boolean,
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      output: string;
+      consoleRecords: {
+        ps1: string;
+        command: string;
+        output: string;
+      }[];
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.shell['view-shell'].post(
+      {
+        sessionId,
+        console: console ?? false,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'View shell failed',
+      null,
+    );
+  }
+
+  async writeToProcess(
+    sessionId: string,
+    inputText: string,
+    pressEnter?: boolean,
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      status: string;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.shell[
+      'write-to-process'
+    ].post(
+      {
+        sessionId,
+        inputText,
+        pressEnter: pressEnter ?? false,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Write to process failed',
+      null,
+    );
+  }
+
+  async waitForProcess(
+    sessionId: string,
+    seconds?: number,
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      returnCode: number | null;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.shell[
+      'wait-for-process'
+    ].post(
+      {
+        sessionId,
+        seconds: seconds ?? 60,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Wait for process failed',
+      null,
+    );
+  }
+
+  async killProcess(sessionId: string): Promise<
+    ToolResult<{
+      sessionId: string;
+      status: string;
+      returnCode: number | null;
+    } | null>
+  > {
+    const response = await this.sandboxAppClient.api.shell['kill-process'].post(
+      {
+        sessionId,
+      },
+      {
+        headers: this.logger.toHeaders(),
+      },
+    );
+    if (response.status === 200 && response.data) {
+      return toolResultFromSandbox(
+        response.data.code,
+        response.data.msg,
+        response.data.data,
+      );
+    }
+    return toolResultFromSandbox(
+      response.data?.code ?? 500,
+      response.data?.msg ?? 'Kill process failed',
+      null,
+    );
   }
 }

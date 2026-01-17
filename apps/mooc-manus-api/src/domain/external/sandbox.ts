@@ -7,22 +7,59 @@ export interface Sandbox {
     sessionId: string,
     execDir: string,
     command: string,
-  ): Promise<ToolResult<string>>;
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      command: string;
+      status: string;
+      returnCode?: number | undefined;
+      output?: string | undefined;
+    } | null>
+  >;
 
-  viewShell(sessionId: string, console?: boolean): Promise<ToolResult<string>>;
+  viewShell(
+    sessionId: string,
+    console?: boolean,
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      output: string;
+      consoleRecords: {
+        ps1: string;
+        command: string;
+        output: string;
+      }[];
+    } | null>
+  >;
 
   waitForProcess(
     sessionId: string,
     seconds?: number,
-  ): Promise<ToolResult<void>>;
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      returnCode: number | null;
+    } | null>
+  >;
 
   writeToProcess(
     sessionId: string,
     inputText: string,
     pressEnter?: boolean,
-  ): Promise<ToolResult<void>>;
+  ): Promise<
+    ToolResult<{
+      sessionId: string;
+      status: string;
+    } | null>
+  >;
 
-  killProcess(sessionId: string): Promise<ToolResult<void>>;
+  killProcess(sessionId: string): Promise<
+    ToolResult<{
+      sessionId: string;
+      status: string;
+      returnCode: number | null;
+    } | null>
+  >;
 
   fileWrite(
     filepath: string,
@@ -33,7 +70,9 @@ export interface Sandbox {
       trailingNewline?: boolean;
       sudo?: boolean;
     },
-  ): Promise<ToolResult<void>>;
+  ): Promise<
+    ToolResult<{ filepath: string; bytesWritten: number | null } | null>
+  >;
 
   fileRead(
     filepath: string,
@@ -43,34 +82,57 @@ export interface Sandbox {
       sudo?: boolean;
       maxLength?: number;
     },
-  ): Promise<ToolResult<string>>;
+  ): Promise<ToolResult<{ filepath: string; content: string } | null>>;
 
-  fileExists(filepath: string): Promise<ToolResult<boolean>>;
+  fileExists(filepath: string): Promise<
+    ToolResult<{
+      filepath: string;
+      exists: boolean;
+    } | null>
+  >;
 
-  fileDelete(filepath: string): Promise<ToolResult<void>>;
+  fileDelete(
+    filepath: string,
+  ): Promise<ToolResult<{ filepath: string; deleted: boolean } | null>>;
 
-  fileList(dirPath: string): Promise<ToolResult<string[]>>;
+  fileList(
+    dirPath: string,
+  ): Promise<ToolResult<{ dirPath: string; files: string[] } | null>>;
 
   fileReplace(
     filepath: string,
     oldText: string,
     newText: string,
     options?: { sudo?: boolean },
-  ): Promise<ToolResult<void>>;
+  ): Promise<ToolResult<{ filepath: string; replacedCount: number } | null>>;
 
   fileSearch(
     filepath: string,
     regex: string,
     options?: { sudo?: boolean },
-  ): Promise<ToolResult<string[]>>;
+  ): Promise<
+    ToolResult<{
+      filepath: string;
+      matches: string[];
+      lineNumbers: number[];
+    } | null>
+  >;
 
-  fileFind(dirPath: string, globPattern: string): Promise<ToolResult<string[]>>;
+  fileFind(
+    dirPath: string,
+    globPattern: string,
+  ): Promise<ToolResult<{ dirPath: string; files: string[] } | null>>;
 
   fileUpload(
-    fileData: Buffer,
+    file: File,
     filepath: string,
-    fileName?: string,
-  ): Promise<ToolResult<void>>;
+  ): Promise<
+    ToolResult<{
+      filepath: string;
+      fileSize: number;
+      success: boolean;
+    } | null>
+  >;
 
   fileDownload(filepath: string): Promise<Buffer>;
 
